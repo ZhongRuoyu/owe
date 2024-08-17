@@ -4,7 +4,8 @@ from itertools import combinations, permutations
 import os
 import subprocess
 from textwrap import dedent
-from collections import namedtuple
+from typing import Optional
+from zoneinfo import ZoneInfo
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -12,15 +13,100 @@ import sqlite3
 
 from dotenv import load_dotenv
 
-Record = namedtuple("Record", [
-    "type",
-    "lender",
-    "borrower",
-    "amount",
-    "created_by",
-    "created_at",
-    "remarks",
-])
+
+class Record:
+  id: Optional[int]
+  type: str
+  lender: str
+  borrower: str
+  amount: int
+  created_by: str
+  created_at: datetime
+  remarks: Optional[str]
+  active: bool
+
+  def __init__(
+      self,
+      *,
+      id: Optional[int] = None,
+      type: str,
+      lender: str,
+      borrower: str,
+      amount: int,
+      created_by: str,
+      created_at: datetime,
+      remarks: Optional[str] = None,
+      active: Optional[bool | int] = True,
+  ) -> None:
+    self.id = id
+    self.type = type
+    self.lender = lender
+    self.borrower = borrower
+    self.amount = amount
+    self.created_by = created_by
+    self.created_at = created_at
+    self.remarks = remarks
+    self.active = bool(active)
+
+  @staticmethod
+  def from_csv_row(row: list[str]) -> "Record":
+    return Record(
+        id=int(row[0]),
+        type=row[1],
+        lender=row[2],
+        borrower=row[3],
+        amount=int(float(row[4]) * 100),
+        created_by=row[5],
+        created_at=datetime.fromisoformat(row[6]),
+        remarks=row[7],
+        active=bool(row[8]),
+    )
+
+  def insert_values(self):
+    return (
+        self.type,
+        self.lender,
+        self.borrower,
+        self.amount,
+        self.created_by,
+        int(self.created_at.timestamp() * 1000),
+        self.remarks,
+    )
+
+  def csv_row(self) -> str:
+    return (
+        self.id,
+        self.type,
+        self.lender,
+        self.borrower,
+        f"{self.amount/100:.2f}",
+        self.created_by,
+        self.created_at.isoformat(),
+        self.remarks,
+        self.active and "1" or "0",
+    )
+
+  def __repr__(self) -> str:
+    fields = [
+        f"id={self.id}",
+        f"type={self.type}",
+        f"lender={self.lender}",
+        f"borrower={self.borrower}",
+        f"amount={self.amount}",
+        f"created_by={self.created_by}",
+        f"created_at={self.created_at.isoformat()}",
+        f"remarks={self.remarks}",
+        f"active={self.active and '1' or '0'}",
+    ]
+    return f"Record({', '.join(fields)})"
+
+  def commit_message(self) -> str:
+    amount = self.amount / 100
+    message = f"{self.lender} -> {self.borrower}: ${amount:.2f}"
+    if self.remarks:
+      message += f" ({self.remarks})"
+    return message
+
 
 load_dotenv()
 
@@ -127,41 +213,38 @@ def new_record():
     if key not in req:
       return {"success": False, "error": f"Missing field: {key}"}, 400
 
-  record_type = req["type"]
   lender = req["lender"]
   borrowers = req["borrowers"]
-  amount = req["amount"]
-  created_by = req["created_by"]
-  created_at = int(datetime.now().timestamp() * 1000)
-  remarks = req["remarks"]
-  amount_per_borrower = ceildiv(amount, len(borrowers))
   records = [
       Record(
-          record_type,
-          lender,
-          borrower,
-          amount_per_borrower,
-          created_by,
-          created_at,
-          remarks,
+          type=req["type"],
+          lender=lender,
+          borrower=borrower,
+          amount=ceildiv(req["amount"], len(borrowers)),
+          created_by=req["created_by"],
+          created_at=datetime.now(tz=ZoneInfo("Asia/Singapore")),
+          remarks=req["remarks"],
       ) for borrower in borrowers if borrower != lender
   ]
 
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
     cur = con.cursor()
-    cur.execute("PRAGMA foreign_keys = ON;").executemany(
-        dedent("""
-          INSERT INTO Records(
-            type,
-            lender,
-            borrower,
-            amount,
-            created_by,
-            created_at,
-            remarks)
-          VALUES(?, ?, ?, ?, ?, ?, ?);
-        """), records)
+    cur.execute("PRAGMA foreign_keys = ON;")
+    for record in records:
+      cur.execute(
+          dedent("""
+            INSERT INTO Records(
+              type,
+              lender,
+              borrower,
+              amount,
+              created_by,
+              created_at,
+              remarks)
+            VALUES(?, ?, ?, ?, ?, ?, ?);
+          """), record.insert_values())
+      record.id = cur.lastrowid
     con.commit()
 
   if BILLING_REPO is not None:
@@ -171,24 +254,36 @@ def new_record():
     subprocess.run(["git", "reset", "--hard", "origin/main"],
                    cwd=BILLING_REPO,
                    check=True)
+
+    with open(
+        f"{BILLING_REPO}/records.csv", "r", encoding="utf-8",
+        newline="") as csv_file:
+      reader = csv.reader(csv_file)
+      next(reader, None)  # Skip header
+      existing_records = [Record.from_csv_row(row) for row in reader]
+
     for record in records:
-      borrower = record.borrower
-      lender = record.lender
-      amount = record.amount / 100
-      remarks = record.remarks
-      message = f"{lender} -> {borrower}: ${amount:.2f}"
-      if remarks:
-        message += f" ({remarks})"
+      existing_records += [record]
+      existing_records.sort(key=lambda r: r.id)
       with open(
-          f"{BILLING_REPO}/records.csv", "a", encoding="utf-8",
+          f"{BILLING_REPO}/records.csv", "w", encoding="utf-8",
           newline="") as csv_file:
-        csv.writer(csv_file).writerow(record)
+        writer = csv.writer(csv_file)
+        writer.writerow([
+            "id", "type", "lender", "borrower", "amount", "created_by",
+            "created_at", "remarks", "active"
+        ])
+        for record in existing_records:
+          writer.writerow(record.csv_row())
+
       subprocess.run(["git", "add", "records.csv"],
                      cwd=BILLING_REPO,
                      check=True)
-      subprocess.run(["git", "commit", "-m", message],
+      subprocess.run(["git", "commit", "-m",
+                      record.commit_message()],
                      cwd=BILLING_REPO,
                      check=True)
+
     subprocess.run(["git", "push", "origin"], cwd=BILLING_REPO, check=True)
 
   return {"success": True}
