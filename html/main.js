@@ -1,4 +1,4 @@
-const api = "https://iou.44522361.xyz/api";
+const api = "/api";
 
 async function updateUsers() {
   const users = await fetch(`${api}/users`).then(res => res.json());
