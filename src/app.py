@@ -1,10 +1,12 @@
+"""Flask app for IOU API."""
+
 import csv
 from datetime import datetime
 from itertools import combinations, permutations
 import os
 import subprocess
 from textwrap import dedent
-from typing import Optional
+from typing import Any, Optional
 from zoneinfo import ZoneInfo
 
 from flask import Flask, request
@@ -15,6 +17,8 @@ from dotenv import load_dotenv
 
 
 class Record:
+  """A record of an IOU transaction."""
+
   id: Optional[int]
   type: str
   lender: str
@@ -28,7 +32,9 @@ class Record:
   def __init__(
       self,
       *,
+      # pylint: disable-next=redefined-builtin
       id: Optional[int] = None,
+      # pylint: disable-next=redefined-builtin
       type: str,
       lender: str,
       borrower: str,
@@ -36,7 +42,7 @@ class Record:
       created_by: str,
       created_at: datetime,
       remarks: Optional[str] = None,
-      active: Optional[bool | int] = True,
+      active: Optional[bool] = True,
   ) -> None:
     self.id = id
     self.type = type
@@ -83,7 +89,7 @@ class Record:
         self.created_by,
         self.created_at.isoformat(),
         self.remarks,
-        self.active and "1" or "0",
+        int(self.active),
     )
 
   def __repr__(self) -> str:
@@ -96,9 +102,10 @@ class Record:
         f"created_by={self.created_by}",
         f"created_at={self.created_at.isoformat()}",
         f"remarks={self.remarks}",
-        f"active={self.active and '1' or '0'}",
+        f"active={int(self.active)}",
     ]
-    return f"Record({', '.join(fields)})"
+    fields_str = ", ".join(fields)
+    return f"Record({fields_str})"
 
   def commit_message(self) -> str:
     amount = self.amount / 100
@@ -147,23 +154,23 @@ app = Flask(__name__)
 CORS(app)
 
 
-def dict_factory(cursor, row):
+def dict_factory(cursor: sqlite3.Cursor, row: list[Any]) -> dict[str, Any]:
   return dict(zip(list(column[0] for column in cursor.description), row))
 
 
-def ceildiv(a, b):
+def ceildiv(a: int, b: int) -> int:
   return -(a // -b)
 
 
 @app.route("/users")
-def get_users():
+def get_users() -> list[dict[str, str | int]]:
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
     return con.cursor().execute("SELECT * FROM Users;").fetchall()
 
 
 @app.route("/records")
-def get_records():
+def get_records() -> list[dict[str, str | int]]:
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
     records = con.cursor().execute("SELECT * FROM Records;").fetchall()
@@ -171,7 +178,7 @@ def get_records():
 
 
 @app.route("/summary")
-def summary():
+def summary() -> list[dict[str, str | int]]:
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
 
@@ -207,7 +214,7 @@ def summary():
 
 
 @app.route("/record", methods=["POST"])
-def new_record():
+def new_record() -> (tuple[dict[str, str | bool], int] | dict[str, str | bool]):
   req = request.get_json()
   for key in ["type", "lender", "borrowers", "amount", "created_by", "remarks"]:
     if key not in req:
