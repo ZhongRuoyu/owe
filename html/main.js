@@ -20,6 +20,18 @@ async function updateUsers() {
       label.htmlFor = `${id}-${user.name}`;
       label.textContent = user.name;
       document.getElementById(id).appendChild(label);
+
+      if (id == "username") {
+        input.addEventListener("change", e => {
+          if (input.checked) {
+            localStorage.setItem("username", user.name);
+          }
+        });
+
+        if (localStorage.getItem("username") === user.name) {
+          input.checked = true;
+        }
+      }
     });
   });
 }
