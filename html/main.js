@@ -102,8 +102,8 @@ async function updateSummary() {
 }
 
 async function addRecord() {
-  const created_by =
-    document.querySelector("input[name='username']:checked")?.value;
+  const usernameInput = document.querySelector("input[name='username']:checked");
+  const created_by = usernameInput?.value;
   if (created_by === null) {
     alert("Please select a username.");
     return;
