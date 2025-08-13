@@ -123,7 +123,8 @@ def init():
     con.cursor().execute(
       dedent("""
         CREATE TABLE IF NOT EXISTS Users(
-          name TEXT PRIMARY KEY
+          name   TEXT PRIMARY KEY,
+          active BOOLEAN DEFAULT TRUE
         );
       """)
     ).execute(

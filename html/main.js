@@ -4,6 +4,10 @@ async function updateUsers() {
   const users = await fetch(`${api}/users`).then(res => res.json());
 
   users.forEach(user => {
+    if (!user.active) {
+      return;
+    }
+
     ["username", "lender", "borrower"].forEach(id => {
       const input = document.createElement("input");
       input.type = id == "borrower" ? "checkbox" : "radio";
