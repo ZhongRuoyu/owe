@@ -1,6 +1,6 @@
 FROM ghcr.io/astral-sh/uv:alpine
 
-RUN apk add --no-cache git
+RUN apk add --no-cache git tzdata
 
 ENV UV_NO_DEV=1
 COPY . /app
