@@ -11,7 +11,6 @@ from textwrap import dedent
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from dotenv import load_dotenv
 from flask import Flask, Response, request
 from flask_cors import CORS
 
@@ -118,8 +117,6 @@ class Record:
       message += f" ({self.remarks})"
     return message
 
-
-load_dotenv()
 
 DATABASE = os.getenv("DATABASE", "iou.db")
 BILLING_REPO = os.getenv("BILLING_REPO", None)

@@ -1,13 +1,10 @@
-# syntax=docker/dockerfile:1
+FROM ghcr.io/astral-sh/uv:alpine
 
-FROM python:3.13-slim
+RUN apk add --no-cache git
 
-RUN apt-get update && \
-  apt-get install --no-install-recommends -y git && \
-  rm -rf /var/lib/apt/lists/*
-
-ADD . /app
+ENV UV_NO_DEV=1
+COPY . /app
 WORKDIR /app
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv sync --locked
 
-ENTRYPOINT [ "gunicorn", "src.app:app" ]
+ENTRYPOINT [ "uv", "run", "gunicorn", "src.app:app" ]
