@@ -13,6 +13,18 @@ from dotenv import load_dotenv
 from flask import Flask, request
 from flask_cors import CORS
 
+RecordCsvRow = tuple[
+  int | None,
+  str,
+  str,
+  str,
+  str,
+  str,
+  str,
+  str | None,
+  int,
+]
+
 
 class Record:
   """A record of an IOU transaction."""
@@ -75,7 +87,7 @@ class Record:
       self.remarks,
     )
 
-  def csv_row(self) -> str:
+  def csv_row(self) -> RecordCsvRow:
     return (
       self.id,
       self.type,
@@ -153,7 +165,10 @@ app = Flask(__name__)
 CORS(app)
 
 
-def dict_factory(cursor: sqlite3.Cursor, row: list[Any]) -> dict[str, Any]:
+def dict_factory(
+  cursor: sqlite3.Cursor,
+  row: tuple[Any, ...],
+) -> dict[str, Any]:
   return dict(zip(list(column[0] for column in cursor.description), row))
 
 
@@ -169,11 +184,11 @@ def get_users() -> list[dict[str, str | int]]:
 
 
 @app.route("/records")
-def get_records() -> list[dict[str, str | int]]:
+def get_records() -> dict[str, dict[str, Any]]:
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
     records = con.cursor().execute("SELECT * FROM Records;").fetchall()
-    return {record["id"]: record for record in records}
+    return {str(record["id"]): record for record in records}
 
 
 @app.route("/summary")
