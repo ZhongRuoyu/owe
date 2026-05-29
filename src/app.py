@@ -193,7 +193,7 @@ def index() -> Response:
 
 
 @app.route(f"{API_PREFIX}/users")
-def get_users() -> list[dict[str, str | int]]:
+def get_users() -> list[dict[str, Any]]:
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
     return con.cursor().execute("SELECT * FROM Users;").fetchall()
@@ -208,7 +208,7 @@ def get_records() -> dict[str, dict[str, Any]]:
 
 
 @app.route(f"{API_PREFIX}/summary")
-def summary() -> list[dict[str, str | int]]:
+def summary() -> list[dict[str, Any]]:
   with sqlite3.connect(DATABASE) as con:
     con.row_factory = dict_factory
 
@@ -262,7 +262,7 @@ def summary() -> list[dict[str, str | int]]:
 
 
 @app.route(f"{API_PREFIX}/record", methods=["POST"])
-def new_record() -> tuple[dict[str, str | bool], int] | dict[str, str | bool]:
+def new_record() -> tuple[dict[str, Any], int] | dict[str, Any]:
   req = request.get_json()
   for key in ["type", "lender", "borrowers", "amount", "created_by", "remarks"]:
     if key not in req:
