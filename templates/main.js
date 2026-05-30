@@ -153,7 +153,7 @@ async function addRecord() {
   const addButton = document.getElementById("add");
   addButton.disabled = true;
   addButton.value = "Adding...";
-  await fetch(`${api}/record`, {
+  await fetch(`${api}/records`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
