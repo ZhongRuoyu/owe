@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,8 @@ from iou.telegram import announce_records
 API_PREFIX = "/api"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+
+logger = logging.getLogger(__name__)
 
 
 def init() -> None:
@@ -69,6 +72,7 @@ def add_records() -> tuple[dict[str, Any], int]:
   if req["type"] not in {"DEBT", "PAYMENT"}:
     return {"success": False, "error": f"Invalid type: {req['type']}"}, 400
 
+  req_type = req["type"]
   lender = req["lender"]
   borrowers = req["borrowers"]
   created_by = (
@@ -79,7 +83,7 @@ def add_records() -> tuple[dict[str, Any], int]:
   created_at = dt.datetime.now(tz=dt.UTC)
   records = [
     Record(
-      type=req["type"],
+      type=req_type,
       lender=lender,
       borrower=borrower,
       amount=ceildiv(req["amount"], len(borrowers)),
@@ -92,6 +96,12 @@ def add_records() -> tuple[dict[str, Any], int]:
   ]
 
   db.add_records(DATABASE, records)
+  logger.info(
+    "Added %d record(s) of type %s by %s",
+    len(records),
+    req_type,
+    created_by,
+  )
 
   if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
     announce_records(records, CURRENCY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)

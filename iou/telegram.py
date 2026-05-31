@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING
 
 import requests
@@ -8,6 +9,8 @@ from iou.config import DATABASE
 if TYPE_CHECKING:
   from iou.record import Record
   from iou.user import User
+
+logger = logging.getLogger(__name__)
 
 
 def try_get_user_name(email: str, users_by_email: dict[str, User]) -> str:
@@ -60,8 +63,12 @@ def announce_records(
   chat_id: str,
 ) -> None:
   message = format_records(records, currency)
-  requests.post(
-    f"https://api.telegram.org/bot{bot_token}/sendMessage",
-    json={"chat_id": chat_id, "text": message},
-    timeout=10,
-  )
+  try:
+    response = requests.post(
+      f"https://api.telegram.org/bot{bot_token}/sendMessage",
+      json={"chat_id": chat_id, "text": message},
+      timeout=10,
+    )
+    response.raise_for_status()
+  except requests.RequestException:
+    logger.exception("Telegram notification failed")
