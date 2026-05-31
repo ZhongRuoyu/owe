@@ -153,25 +153,23 @@ async function addRecord() {
   const addButton = document.getElementById("add");
   addButton.disabled = true;
   addButton.value = "Adding...";
-  await fetch(`${api}/records`, {
+
+  const response = await fetch(`${api}/records`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       type: "PAYMENT", created_by, lender, borrowers, amount, remarks
     }),
-  })
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(res.statusText);
-      }
+  });
+  const data = await response.json();
+  if (response.ok) {
+    alert("Record added successfully.");
+    document.getElementById("form-add-record").reset();
+    usernameInput.checked = true;
+  } else {
+    alert(`Failed to add record: ${data.error || response.statusText}`);
+  }
 
-      alert("Record added successfully.");
-      document.getElementById("form-add-record").reset();
-      usernameInput.checked = true;
-    })
-    .catch(err => {
-      alert(`Failed to add record: ${err}`);
-    });
   addButton.disabled = false;
   addButton.value = "Add";
 }
