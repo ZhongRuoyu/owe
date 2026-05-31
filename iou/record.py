@@ -109,10 +109,3 @@ class Record:
       "remarks": self.remarks,
       "active": self.active,
     }
-
-  def message(self, currency: str) -> str:
-    amount = self.amount / 100
-    message = f"{self.lender} -> {self.borrower}: {currency} {amount:.2f}"
-    if self.remarks:
-      message += f" ({self.remarks})"
-    return message
