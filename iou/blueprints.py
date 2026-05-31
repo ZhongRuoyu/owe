@@ -47,7 +47,7 @@ blueprint.register_blueprint(api)
 
 @api.route("/users")
 def get_users() -> list[dict[str, Any]]:
-  users = db.get_users(DATABASE)
+  users = db.get_users(DATABASE, active_only=True)
   return [user.asdict() for user in users]
 
 
@@ -60,20 +60,26 @@ def get_records() -> dict[str, dict[str, Any]]:
 @api.route("/records", methods=["POST"])
 def add_records() -> tuple[dict[str, Any], int]:
   req = request.get_json()
-  for key in ["type", "lender", "borrowers", "amount", "created_by", "remarks"]:
+  for key in ["type", "lender", "borrowers", "amount", "remarks"]:
     if key not in req:
       return {"success": False, "error": f"Missing field: {key}"}, 400
 
   lender = req["lender"]
   borrowers = req["borrowers"]
+  created_by = (
+    request.headers.get("cf-access-authenticated-user-email")
+    or request.remote_addr
+    or "unknown"
+  )
+  created_at = dt.datetime.now(tz=dt.UTC)
   records = [
     Record(
       type=req["type"],
       lender=lender,
       borrower=borrower,
       amount=ceildiv(req["amount"], len(borrowers)),
-      created_by=req["created_by"],
-      created_at=dt.datetime.now(tz=dt.UTC),
+      created_by=created_by,
+      created_at=created_at,
       remarks=req["remarks"],
     )
     for borrower in borrowers
@@ -93,15 +99,15 @@ def summary() -> list[dict[str, Any]]:
   users = db.get_users(DATABASE)
   records = db.get_records(DATABASE, active_only=True)
 
-  net_balance = {user.name: 0 for user in users}
+  net_balance = {user.email: 0 for user in users}
   for record in records:
     net_balance[record.lender] += record.amount
     net_balance[record.borrower] -= record.amount
   creditors = [
-    (name, balance) for name, balance in net_balance.items() if balance > 0
+    (email, balance) for email, balance in net_balance.items() if balance > 0
   ]
   debtors = [
-    (name, -balance) for name, balance in net_balance.items() if balance < 0
+    (email, -balance) for email, balance in net_balance.items() if balance < 0
   ]
   creditors.sort(key=lambda x: x[1], reverse=True)
   debtors.sort(key=lambda x: x[1], reverse=True)
@@ -110,16 +116,16 @@ def summary() -> list[dict[str, Any]]:
   creditor_idx = 0
   debtor_idx = 0
   while creditor_idx < len(creditors) and debtor_idx < len(debtors):
-    creditor_name, credit_amount = creditors[creditor_idx]
-    debtor_name, debt_amount = debtors[debtor_idx]
+    creditor_email, credit_amount = creditors[creditor_idx]
+    debtor_email, debt_amount = debtors[debtor_idx]
 
     transfer_amount = min(credit_amount, debt_amount)
     if transfer_amount > 0:
       transactions.append(
-        {"from": debtor_name, "to": creditor_name, "amount": transfer_amount}
+        {"from": debtor_email, "to": creditor_email, "amount": transfer_amount}
       )
-    creditors[creditor_idx] = (creditor_name, credit_amount - transfer_amount)
-    debtors[debtor_idx] = (debtor_name, debt_amount - transfer_amount)
+    creditors[creditor_idx] = (creditor_email, credit_amount - transfer_amount)
+    debtors[debtor_idx] = (debtor_email, debt_amount - transfer_amount)
 
     if creditors[creditor_idx][1] == 0:
       creditor_idx += 1

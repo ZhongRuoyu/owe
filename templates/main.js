@@ -8,21 +8,34 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
+async function getUsers() {
+  return await fetch(`${api}/users`).then(res => res.json());
+}
+
+async function getRecords() {
+  return await fetch(`${api}/records`).then(res => res.json());
+}
+
+async function getSummary() {
+  return await fetch(`${api}/summary`).then(res => res.json());
+}
+
 async function updateUsers() {
-  const users = await fetch(`${api}/users`).then(res => res.json());
+  const users = await getUsers();
 
   users.forEach(user => {
     if (!user.active) {
       return;
     }
 
-    ["username", "lender", "borrower"].forEach(id => {
+    ["lender", "borrower"].forEach(id => {
       const input = document.createElement("input");
       input.type = id == "borrower" ? "checkbox" : "radio";
       input.classList.add("btn-check");
       input.name = id;
       input.value = user.name;
       input.id = `${id}-${user.name}`;
+      input.setAttribute("x-user-email", user.email);
       input.required = id != "borrower";
       input.autocomplete = "off";
       document.getElementById(id).appendChild(input);
@@ -32,24 +45,19 @@ async function updateUsers() {
       label.htmlFor = `${id}-${user.name}`;
       label.textContent = user.name;
       document.getElementById(id).appendChild(label);
-
-      if (id == "username") {
-        input.addEventListener("change", e => {
-          if (input.checked) {
-            localStorage.setItem("username", user.name);
-          }
-        });
-
-        if (localStorage.getItem("username") === user.name) {
-          input.checked = true;
-        }
-      }
     });
   });
 }
 
 async function updateRecords() {
-  const records = await fetch(`${api}/records`).then(res => res.json());
+  const [users, records] = await Promise.all([getUsers(), getRecords()]);
+  const userMap = Object.fromEntries(
+    users.map(user => [user.email, user.name]),
+  );
+  Object.values(records).forEach(record => {
+    record.lender = userMap[record.lender] ?? record.lender;
+    record.borrower = userMap[record.borrower] ?? record.borrower;
+  });
 
   const table = document.getElementById("tbody-records");
   if (table === null) {
@@ -89,7 +97,14 @@ async function updateRecords() {
 };
 
 async function updateSummary() {
-  const summary = await fetch(`${api}/summary`).then(res => res.json());
+  const [users, summary] = await Promise.all([getUsers(), getSummary()]);
+  const userMap = Object.fromEntries(
+    users.map(user => [user.email, user.name]),
+  );
+  summary.forEach(item => {
+    item.from = userMap[item.from] ?? item.from;
+    item.to = userMap[item.to] ?? item.to;
+  });
 
   const table = document.getElementById("tbody-summary");
   if (table === null) {
@@ -114,14 +129,9 @@ async function updateSummary() {
 }
 
 async function addRecord() {
-  const usernameInput = document.querySelector("input[name='username']:checked");
-  const created_by = usernameInput?.value;
-  if (created_by === null) {
-    alert("Please select a username.");
-    return;
-  }
-
-  const lender = document.querySelector("input[name='lender']:checked")?.value;
+  const lender =
+    document.querySelector("input[name='lender']:checked")
+      ?.getAttribute("x-user-email");
   if (lender === null) {
     alert("Please select a lender.");
     return;
@@ -129,10 +139,9 @@ async function addRecord() {
 
   const borrowers = [
     ...document
-      .querySelectorAll("input[name='borrower']:checked")
-      ?.values() ?? []
+      .querySelectorAll("input[name='borrower']:checked"),
   ]
-    .map(node => node.value);
+    .map(node => node.getAttribute("x-user-email"));
   if (borrowers.length === 0) {
     alert("Please select at least one borrower.");
     return;
@@ -158,14 +167,13 @@ async function addRecord() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      type: "PAYMENT", created_by, lender, borrowers, amount, remarks
+      type: "PAYMENT", lender, borrowers, amount, remarks
     }),
   });
   const data = await response.json();
   if (response.ok) {
     alert("Record added successfully.");
     document.getElementById("form-add-record").reset();
-    usernameInput.checked = true;
   } else {
     alert(`Failed to add record: ${data.error || response.statusText}`);
   }

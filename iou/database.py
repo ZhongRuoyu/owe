@@ -27,7 +27,8 @@ def init(database: Path) -> None:
     con.cursor().execute(
       dedent("""
         CREATE TABLE IF NOT EXISTS Users(
-          name   TEXT PRIMARY KEY,
+          email  TEXT PRIMARY KEY,
+          name   TEXT UNIQUE NOT NULL,
           active BOOLEAN DEFAULT TRUE
         );
       """)
@@ -43,9 +44,8 @@ def init(database: Path) -> None:
           created_at INTEGER NOT NULL,
           remarks    TEXT,
           active     BOOLEAN DEFAULT TRUE,
-          FOREIGN KEY(lender) REFERENCES Users(name),
-          FOREIGN KEY(borrower) REFERENCES Users(name),
-          FOREIGN KEY(created_by) REFERENCES Users(name),
+          FOREIGN KEY(lender) REFERENCES Users(email),
+          FOREIGN KEY(borrower) REFERENCES Users(email),
           CHECK(lender != borrower),
           CHECK(amount > 0)
         );
@@ -53,11 +53,15 @@ def init(database: Path) -> None:
     )
 
 
-def get_users(database: Path) -> list[User]:
+def get_users(database: Path, *, active_only: bool = False) -> list[User]:
   with sqlite3.connect(database) as con:
     con.row_factory = dict_factory
     cur = con.cursor()
-    rows = cur.execute("SELECT * FROM Users ORDER BY name;").fetchall()
+    query = "SELECT * FROM Users"
+    if active_only:
+      query += " WHERE active = TRUE"
+    query += " ORDER BY name;"
+    rows = cur.execute(query).fetchall()
     return [User.from_db_row(row) for row in rows]
 
 
