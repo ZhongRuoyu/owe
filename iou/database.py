@@ -44,6 +44,7 @@ def init(database: Path) -> None:
           created_at INTEGER NOT NULL,
           remarks    TEXT,
           active     BOOLEAN DEFAULT TRUE,
+          CHECK(type IN ('DEBT', 'PAYMENT')),
           FOREIGN KEY(lender) REFERENCES Users(email),
           FOREIGN KEY(borrower) REFERENCES Users(email),
           CHECK(lender != borrower),
