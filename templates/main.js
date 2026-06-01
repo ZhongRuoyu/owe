@@ -114,6 +114,8 @@ async function updateRecords() {
       checkbox.type = "checkbox";
       checkbox.id = `record-checkbox-${record.id}`;
       checkbox.setAttribute("x-record-id", record.id);
+      checkbox.setAttribute("x-record-active", record.active ? "true" : "false");
+      checkbox.addEventListener("change", onRecordCheckboxChange);
       [
         "created_at",
         "type",
@@ -136,10 +138,11 @@ async function updateRecords() {
         }
       });
       if (!record.active) {
-        checkbox.disabled = true;
         row.style.textDecoration = "line-through";
       }
     });
+  document.getElementById("btn-activate-records").disabled = true;
+  document.getElementById("btn-cancel-records").disabled = true;
 };
 
 async function updateSummary() {
@@ -257,6 +260,63 @@ async function addRecord() {
   addButton.value = "Add";
 }
 
+function onRecordCheckboxChange() {
+  const allBoxes = [
+    ...document.querySelectorAll(
+      "#tbody-records input[type='checkbox']",
+    ),
+  ];
+  const checkedBoxes = allBoxes.filter(cb => cb.checked);
+
+  if (checkedBoxes.length === 0) {
+    allBoxes.forEach(cb => { cb.disabled = false; });
+    document.getElementById("btn-activate-records").disabled = true;
+    document.getElementById("btn-cancel-records").disabled = true;
+    return;
+  }
+
+  const selectedActive =
+    checkedBoxes[0].getAttribute("x-record-active") === "true";
+  allBoxes.forEach(cb => {
+    if (!cb.checked) {
+      cb.disabled =
+        (cb.getAttribute("x-record-active") === "true") !== selectedActive;
+    }
+  });
+  document.getElementById("btn-activate-records").disabled = selectedActive;
+  document.getElementById("btn-cancel-records").disabled = !selectedActive;
+}
+
+async function setRecordsActive(active) {
+  const checked = [
+    ...document.querySelectorAll(
+      "#tbody-records input[type='checkbox']:checked",
+    ),
+  ];
+  if (checked.length === 0) {
+    showAlert(
+      `Please select at least one record to ${active ? "activate" : "cancel"}.`,
+      "warning",
+    );
+    return;
+  }
+  const ids = checked.map(cb => +cb.getAttribute("x-record-id"));
+  const response = await fetch(`${api}/records/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids, active }),
+  });
+  const data = await response.json();
+  if (response.ok) {
+    await updateRecords();
+  } else {
+    showAlert(
+      `Failed to ${active ? "activate" : "cancel"} records: ` +
+      `${data.error || response.statusText}`,
+    );
+  }
+}
+
 (() => {
   document.getElementById("input-currency-label").textContent =
     Intl.NumberFormat(navigator.language, {
@@ -274,6 +334,11 @@ async function addRecord() {
       e.preventDefault();
       addRecord();
     });
+
+  document.getElementById("btn-activate-records")
+    .addEventListener("click", () => { setRecordsActive(true); });
+  document.getElementById("btn-cancel-records")
+    .addEventListener("click", () => { setRecordsActive(false); });
 
   Object.entries({
     "nav-records-tab": updateRecords,

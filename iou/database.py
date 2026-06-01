@@ -100,3 +100,17 @@ def add_records(database: Path, records: list[Record]) -> None:
         record.to_insert_values(),
       )
       record.id = cur.lastrowid
+
+
+def set_records_active(
+  database: Path,
+  ids: list[int],
+  *,
+  active: bool,
+) -> None:
+  with sqlite3.connect(database) as con:
+    cur = con.cursor()
+    cur.executemany(
+      "UPDATE Records SET active = ? WHERE id = ?;",
+      [(active, record_id) for record_id in ids],
+    )

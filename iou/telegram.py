@@ -56,14 +56,27 @@ def format_records(
   return "\n\n".join(messages)
 
 
-def announce_records(
+def format_record_status_change(
   records: list[Record],
   currency: str,
   users: list[User],
-  bot_token: str,
-  chat_id: str,
-) -> None:
-  message = format_records(records, currency, users)
+  requester: str,
+  *,
+  active: bool,
+) -> str:
+  users_by_email = {user.email: user for user in users}
+
+  requester_name = try_get_user_name(requester, users_by_email)
+  record_count = len(records)
+  records_word = "record" if record_count == 1 else "records"
+  action = "activated" if active else "canceled"
+  message = f"{record_count} IOU {records_word} {action} by {requester_name}:\n"
+  for record in records:
+    message += f"- {record_message(record, currency, users_by_email)}\n"
+  return message
+
+
+def post_message(bot_token: str, chat_id: str, message: str) -> None:
   try:
     response = requests.post(
       f"https://api.telegram.org/bot{bot_token}/sendMessage",
@@ -73,3 +86,32 @@ def announce_records(
     response.raise_for_status()
   except requests.RequestException:
     logger.exception("Telegram notification failed")
+
+
+def announce_records(
+  records: list[Record],
+  currency: str,
+  users: list[User],
+  bot_token: str,
+  chat_id: str,
+) -> None:
+  post_message(bot_token, chat_id, format_records(records, currency, users))
+
+
+def announce_record_status_change(  # noqa: PLR0913
+  records: list[Record],
+  currency: str,
+  users: list[User],
+  requester: str,
+  bot_token: str,
+  chat_id: str,
+  *,
+  active: bool,
+) -> None:
+  post_message(
+    bot_token,
+    chat_id,
+    format_record_status_change(
+      records, currency, users, requester, active=active
+    ),
+  )

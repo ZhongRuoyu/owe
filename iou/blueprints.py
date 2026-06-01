@@ -16,7 +16,7 @@ from iou.config import (
   TELEGRAM_CHAT_ID,
 )
 from iou.record import Record
-from iou.telegram import announce_records
+from iou.telegram import announce_record_status_change, announce_records
 
 API_PREFIX = "/api"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -159,6 +159,52 @@ def add_records() -> tuple[dict[str, Any], int]:
     threading.Thread(
       target=announce_records,
       args=(records, CURRENCY, users, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID),
+      daemon=False,
+    ).start()
+
+  return {"success": True}, 200
+
+
+@api.route("/records/status", methods=["PATCH"])
+def set_records_active() -> tuple[dict[str, Any], int]:
+  req = request.get_json()
+  if not req:
+    return {"success": False, "error": "Request body must be JSON"}, 400
+  ids = req.get("ids", [])
+  active = req.get("active")
+  if not ids or not all(isinstance(i, int) for i in ids):
+    return {
+      "success": False,
+      "error": "ids must be a non-empty list of integers",
+    }, 400
+  if not isinstance(active, bool):
+    return {"success": False, "error": "active must be a boolean"}, 400
+
+  try:
+    db.set_records_active(DATABASE, ids, active=active)
+  except sqlite3.Error:
+    logger.exception("Database error in set_records_active")
+    return {"success": False, "error": "Database error"}, 500
+  action = "activated" if active else "canceled"
+  requester = get_requester()
+  logger.info("%d records %s by %s", len(ids), action, requester)
+
+  if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+    records = [r for r in db.get_records(DATABASE) if r.id in set(ids)]
+    users = db.get_users(DATABASE)
+    threading.Thread(
+      target=announce_record_status_change,
+      args=(
+        records,
+        CURRENCY,
+        users,
+        requester,
+        TELEGRAM_BOT_TOKEN,
+        TELEGRAM_CHAT_ID,
+      ),
+      kwargs={
+        "active": active,
+      },
       daemon=False,
     ).start()
 
