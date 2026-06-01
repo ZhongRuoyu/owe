@@ -21,7 +21,7 @@ def create_user(email: str, name: str) -> int:
   return 0
 
 
-def cmd_list_users() -> int:
+def list_users() -> int:
   users = db.get_users(DATABASE)
   if not users:
     print("No users found.")
@@ -53,7 +53,7 @@ def cmd_list_users() -> int:
   return 0
 
 
-def cmd_set_active(email: str, *, active: bool) -> int:
+def set_active(email: str, *, active: bool) -> int:
   try:
     count = db.set_user_active(DATABASE, email, active=active)
   except sqlite3.Error as error:
@@ -77,19 +77,17 @@ def build_parser() -> argparse.ArgumentParser:
   sub = parser.add_subparsers(dest="command", metavar="COMMAND")
   sub.required = True
 
-  create_parser = sub.add_parser("create-user", help="add a new user")
+  create_parser = sub.add_parser("create", help="add a new user")
   create_parser.add_argument("email", help="user's email address")
   create_parser.add_argument("name", help="user's unique display name")
 
-  sub.add_parser("list-users", help="list all users")
+  sub.add_parser("list", help="list all users")
 
-  activate_parser = sub.add_parser(
-    "activate-user", help="activate a user by email"
-  )
+  activate_parser = sub.add_parser("activate", help="activate a user by email")
   activate_parser.add_argument("email", help="email of the user to activate")
 
   deactivate_parser = sub.add_parser(
-    "deactivate-user", help="deactivate a user by email"
+    "deactivate", help="deactivate a user by email"
   )
   deactivate_parser.add_argument(
     "email", help="email of the user to deactivate"
@@ -103,14 +101,14 @@ def main() -> int:
   args = parser.parse_args()
 
   match args.command:
-    case "create-user":
+    case "create":
       return create_user(args.email, args.name)
-    case "list-users":
-      return cmd_list_users()
-    case "activate-user":
-      return cmd_set_active(args.email, active=True)
-    case "deactivate-user":
-      return cmd_set_active(args.email, active=False)
+    case "list":
+      return list_users()
+    case "activate":
+      return set_active(args.email, active=True)
+    case "deactivate":
+      return set_active(args.email, active=False)
     case _:
       parser.print_help()
       return 1
