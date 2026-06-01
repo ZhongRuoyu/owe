@@ -252,6 +252,7 @@ async function addRecord() {
   if (response.ok) {
     showAlert("Record added successfully.", "success");
     document.getElementById("form-add-record").reset();
+    document.getElementById("type-DEBT").checked = true;
   } else {
     showAlert(`Failed to add record: ${data.error || response.statusText}`);
   }
