@@ -90,6 +90,25 @@ def get_users(database: Path, *, active_only: bool = False) -> list[User]:
   return [User.from_db_row(row) for row in rows]
 
 
+def add_user(database: Path, email: str, name: str) -> None:
+  with sqlite3.connect(database) as con:
+    cur = con.cursor()
+    cur.execute(
+      "INSERT INTO Users(email, name, active) VALUES(?, ?, TRUE);",
+      (email, name),
+    )
+
+
+def set_user_active(database: Path, email: str, *, active: bool) -> int:
+  with sqlite3.connect(database) as con:
+    cur = con.cursor()
+    cur.execute(
+      "UPDATE Users SET active = ? WHERE email = ?;",
+      (active, email),
+    )
+    return cur.rowcount
+
+
 def get_records(database: Path, *, active_only: bool = False) -> list[Record]:
   with sqlite3.connect(database) as con:
     con.row_factory = dict_factory
@@ -131,13 +150,14 @@ def set_records_active(
   ids: list[int],
   *,
   active: bool,
-) -> None:
+) -> int:
   with sqlite3.connect(database) as con:
     cur = con.cursor()
     cur.executemany(
       "UPDATE Records SET active = ? WHERE id = ?;",
       [(active, record_id) for record_id in ids],
     )
+    return cur.rowcount
 
 
 def get_net_balances(database: Path) -> dict[str, int]:
