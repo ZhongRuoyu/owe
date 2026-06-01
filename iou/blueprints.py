@@ -56,6 +56,7 @@ def add_csp(response: Response) -> Response:
     "default-src 'self'; "
     "script-src 'self' https://cdnjs.cloudflare.com; "
     "style-src 'self' https://cdnjs.cloudflare.com; "
+    "img-src 'self' data:; "
   )
   return response
 
