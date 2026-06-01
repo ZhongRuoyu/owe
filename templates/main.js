@@ -8,8 +8,13 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
+let cachedUsers = null;
 async function getUsers() {
-  return await fetch(`${api}/users`).then(res => res.json());
+  if (cachedUsers) {
+    return cachedUsers;
+  }
+  cachedUsers = await fetch(`${api}/users`).then(res => res.json());
+  return cachedUsers;
 }
 
 async function getRecords() {
