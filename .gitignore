@@ -10,4 +10,5 @@ build
 
 # Runtime files
 .env
+*.csv
 *.db
