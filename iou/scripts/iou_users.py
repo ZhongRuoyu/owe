@@ -23,6 +23,9 @@ def create_user(email: str, name: str) -> int:
 
 def cmd_list_users() -> int:
   users = db.get_users(DATABASE)
+  if not users:
+    print("No users found.")
+    return 0
 
   col_email = max(len("EMAIL"), *(len(user.email) for user in users))
   col_name = max(len("NAME"), *(len(user.name) for user in users))
