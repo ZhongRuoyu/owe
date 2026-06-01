@@ -18,8 +18,16 @@ iou-users = "iou.scripts.iou_users:main"
 [dependency-groups]
 dev = ["ruff>=0.15.14", "ty>=0.0.39"]
 
+[build-system]
+requires = ["uv_build>=0.11.16"]
+build-backend = "uv_build"
+
 [tool.setuptools.package-data]
 iou = ["static/**/*", "templates/**/*"]
 
 [tool.uv]
 exclude-newer = "P7D"
+
+[tool.uv.build-backend]
+module-name = "iou"
+module-root = ""
