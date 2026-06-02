@@ -145,26 +145,29 @@ The server exposes the following API endpoints:
 The package also comes with two command-line utilities:
 
 - `iou-dump`: Dump all records in the database as CSV.
-  Control the database path with the `DATABASE` environment variable,
-  and the output file with the `RECORDS` environment variable (default:
-  `records.csv`).
+  Use `--output` to set the output file path (default: `records.csv`);
+  use `--database` to choose the SQLite database file (default: `iou.db`).
 - `iou-users`: Manage users from the command line.
+  Use `--database` to choose the SQLite database file (default: `iou.db`).
   Usage:
-  - `iou-users create <email> <name>`: Add a user with the given email and name.
-  - `iou-users list`: List all users.
-  - `iou-users activate <email>`: Activate the user with the given email.
-  - `iou-users deactivate <email>`: Deactivate the user with the given email.
+  - `iou-users [--database <path>] create <email> <name>`:
+    Add a user with the given email and name.
+  - `iou-users [--database <path>] list`: List all users.
+  - `iou-users [--database <path>] activate <email>`:
+    Activate the user with the given email.
+  - `iou-users [--database <path>] deactivate <email>`:
+    Deactivate the user with the given email.
 
 To run these utilities:
 
 ```sh
 # With uv
-uv run iou-dump
-uv run iou-users list
+uv run iou-dump --output records.csv
+uv run iou-users --database iou.db list
 
 # With pip, after `pip install .`
-iou-dump
-iou-users list
+iou-dump --output records.csv
+iou-users --database iou.db list
 ```
 
 ## License

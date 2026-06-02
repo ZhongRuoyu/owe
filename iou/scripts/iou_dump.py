@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
 import csv
-import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import iou.database as db
-from iou.config import DATABASE
 from iou.record import Record
-
-RECORDS = os.getenv("RECORDS", "records.csv")
 
 
 def dump_records(records: list[Record], output: Path) -> None:
@@ -21,9 +18,32 @@ def dump_records(records: list[Record], output: Path) -> None:
       writer.writerow(record.to_csv_row())
 
 
+def build_parser() -> argparse.ArgumentParser:
+  parser = argparse.ArgumentParser(
+    prog="iou-dump",
+    description="Dump records from the IOU database as CSV.",
+  )
+  parser.add_argument(
+    "--database",
+    type=Path,
+    default=Path("iou.db"),
+    help="path to the SQLite database file (default: iou.db)",
+  )
+  parser.add_argument(
+    "--output",
+    type=Path,
+    default=Path("records.csv"),
+    help="path to output CSV file (default: records.csv)",
+  )
+  return parser
+
+
 def main() -> int:
-  database = Path(DATABASE)
-  output = Path(RECORDS)
+  parser = build_parser()
+  args = parser.parse_args()
+
+  database = args.database
+  output = args.output
 
   if not database.exists():
     print(f"Error: Database file {database} not found")

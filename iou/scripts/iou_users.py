@@ -9,7 +9,6 @@ from iou.user import User
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import iou.database as db
-from iou.config import DATABASE
 
 
 def create_user(database: Path, email: str, name: str) -> int:
@@ -76,6 +75,12 @@ def build_parser() -> argparse.ArgumentParser:
     prog="iou-users",
     description="Manage users in the IOU bill splitter database.",
   )
+  parser.add_argument(
+    "--database",
+    type=Path,
+    default=Path("iou.db"),
+    help="path to the SQLite database file (default: iou.db)",
+  )
 
   sub = parser.add_subparsers(dest="command", metavar="COMMAND")
   sub.required = True
@@ -103,7 +108,7 @@ def main() -> int:
   parser = build_parser()
   args = parser.parse_args()
 
-  database = DATABASE
+  database = args.database
   if not database.exists():
     print(f"Error: Database file {database} not found")
     return 1
