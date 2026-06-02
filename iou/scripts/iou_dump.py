@@ -26,7 +26,7 @@ def main() -> int:
   output = Path(RECORDS)
 
   if not database.exists():
-    print(f"Error: Database file {DATABASE} not found")
+    print(f"Error: Database file {database} not found")
     return 1
 
   records = db.get_records(database)

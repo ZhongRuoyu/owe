@@ -10,9 +10,9 @@ import iou.database as db
 from iou.config import DATABASE
 
 
-def create_user(email: str, name: str) -> int:
+def create_user(database: Path, email: str, name: str) -> int:
   try:
-    db.add_user(DATABASE, email, name)
+    db.add_user(database, email, name)
   except sqlite3.Error as error:
     print(f"Error: {error}", file=sys.stderr)
     return 1
@@ -21,8 +21,8 @@ def create_user(email: str, name: str) -> int:
   return 0
 
 
-def list_users() -> int:
-  users = db.get_users(DATABASE)
+def list_users(database: Path) -> int:
+  users = db.get_users(database)
   if not users:
     print("No users found.")
     return 0
@@ -53,9 +53,9 @@ def list_users() -> int:
   return 0
 
 
-def set_active(email: str, *, active: bool) -> int:
+def set_active(database: Path, email: str, *, active: bool) -> int:
   try:
-    count = db.set_user_active(DATABASE, email, active=active)
+    count = db.set_user_active(database, email, active=active)
   except sqlite3.Error as error:
     print(f"Error: {error}", file=sys.stderr)
     return 1
@@ -100,15 +100,20 @@ def main() -> int:
   parser = build_parser()
   args = parser.parse_args()
 
+  database = DATABASE
+  if not database.exists():
+    print(f"Error: Database file {database} not found")
+    return 1
+
   match args.command:
     case "create":
-      return create_user(args.email, args.name)
+      return create_user(database, args.email, args.name)
     case "list":
-      return list_users()
+      return list_users(database)
     case "activate":
-      return set_active(args.email, active=True)
+      return set_active(database, args.email, active=True)
     case "deactivate":
-      return set_active(args.email, active=False)
+      return set_active(database, args.email, active=False)
     case _:
       parser.print_help()
       return 1
