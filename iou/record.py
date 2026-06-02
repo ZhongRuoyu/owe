@@ -33,6 +33,9 @@ class Record:
 
   @staticmethod
   def from_db_row(row: dict[str, Any]) -> "Record":
+    created_at = dt.datetime.fromtimestamp(
+      row["created_at"] / 1000, tz=dt.timezone.utc
+    )
     return Record(
       id=row["id"],
       type=row["type"],
@@ -40,7 +43,7 @@ class Record:
       borrower=row["borrower"],
       amount=row["amount"],
       created_by=row["created_by"],
-      created_at=dt.datetime.fromtimestamp(row["created_at"] / 1000, tz=dt.UTC),
+      created_at=created_at,
       remarks=row["remarks"],
       active=bool(row["active"]),
     )

@@ -21,7 +21,7 @@ Core concepts:
 
 ## Requirements
 
-- Python 3.13 or later
+- Python 3.10 or later
 - [uv](https://github.com/astral-sh/uv) (recommended) or pip
 - (Optional) A Telegram bot token and chat ID for record notifications.
 

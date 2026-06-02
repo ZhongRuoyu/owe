@@ -154,7 +154,7 @@ def add_records() -> tuple[dict[str, Any], int]:
   borrowers = req["borrowers"]
   each_amount = ceildiv(req["amount"], len(borrowers))
   created_by = get_requester()
-  created_at = dt.datetime.now(tz=dt.UTC)
+  created_at = dt.datetime.now(tz=dt.timezone.utc)
   remarks = req["remarks"]
   records = [
     Record(
