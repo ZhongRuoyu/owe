@@ -2,15 +2,26 @@ const api = "api";
 
 function showAlert(message, type = "danger") {
   const container = document.getElementById("alerts");
-  container.innerHTML = "";
+
   const wrapper = document.createElement("div");
-  wrapper.innerHTML =
-    `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"
-        aria-label="Close"></button>
-    </div>`;
-  container.appendChild(wrapper);
+  wrapper.classList.add(
+    "alert",
+    `alert-${type}`,
+    "alert-dismissible",
+    "fade",
+    "show",
+  );
+  wrapper.role = "alert";
+  wrapper.textContent = message;
+
+  const dismissButton = document.createElement("button");
+  dismissButton.type = "button";
+  dismissButton.classList.add("btn-close");
+  dismissButton.setAttribute("data-bs-dismiss", "alert");
+  dismissButton.ariaLabel = "Close";
+
+  wrapper.appendChild(dismissButton);
+  container.replaceChildren(wrapper);
 }
 
 let currency = "USD";
