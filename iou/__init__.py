@@ -10,7 +10,7 @@ def create_app(
   api_only: bool = False,
 ) -> Flask:
   iou.app.init()
-  app = Flask(__name__)
+  app = Flask(__name__, static_folder=None)
   bp = iou.app.api if api_only else iou.app.app
   app.register_blueprint(bp, url_prefix=url_prefix)
   CORS(app)
