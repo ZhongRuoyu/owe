@@ -19,6 +19,7 @@ SummaryTransaction = TypedDict(
 
 
 def app_config() -> AppConfigItems:
+  """Return typed app config values for service-layer helpers."""
   return cast("AppConfigItems", current_app.config)
 
 

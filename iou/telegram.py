@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def try_get_user_name(email: str, users_by_email: dict[str, User]) -> str:
+  """Resolve a user email to display name, falling back to the email."""
   if email in users_by_email:
     return users_by_email[email].name
   return email
@@ -19,6 +20,7 @@ def record_message(
   currency: str,
   users_by_email: dict[str, User],
 ) -> str:
+  """Format a single record as a human-readable notification line."""
   lender = try_get_user_name(record.lender, users_by_email)
   borrower = try_get_user_name(record.borrower, users_by_email)
   amount = record.amount / 100
@@ -33,6 +35,7 @@ def format_records(
   currency: str,
   users: list[User],
 ) -> str:
+  """Format grouped new-record notifications for Telegram."""
   users_by_email = {user.email: user for user in users}
 
   records_by_creator: dict[str, list[Record]] = {}
@@ -62,6 +65,7 @@ def format_record_status_change(
   *,
   active: bool,
 ) -> str:
+  """Format record status update notifications for Telegram."""
   users_by_email = {user.email: user for user in users}
 
   requester_name = try_get_user_name(requester, users_by_email)
@@ -75,6 +79,7 @@ def format_record_status_change(
 
 
 def post_message(bot_token: str, chat_id: str, message: str) -> None:
+  """Send a message to a Telegram chat and log failures."""
   try:
     response = requests.post(
       f"https://api.telegram.org/bot{bot_token}/sendMessage",
@@ -93,6 +98,7 @@ def announce_records(
   bot_token: str,
   chat_id: str,
 ) -> None:
+  """Build and send a new-record announcement to Telegram."""
   post_message(bot_token, chat_id, format_records(records, currency, users))
 
 
@@ -106,6 +112,7 @@ def announce_record_status_change(  # noqa: PLR0913
   *,
   active: bool,
 ) -> None:
+  """Build and send a record-status announcement to Telegram."""
   post_message(
     bot_token,
     chat_id,

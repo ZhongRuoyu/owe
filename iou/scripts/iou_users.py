@@ -12,6 +12,7 @@ import iou.database as db
 
 
 def create_user(database: Path, email: str, name: str) -> int:
+  """Create a user and print the created user's email on success."""
   user = User(email, name)
   try:
     db.add_user(database, user)
@@ -24,6 +25,7 @@ def create_user(database: Path, email: str, name: str) -> int:
 
 
 def list_users(database: Path) -> int:
+  """Print all users in a fixed-width table."""
   users = db.get_users(database)
   if not users:
     print("No users found.")
@@ -56,6 +58,7 @@ def list_users(database: Path) -> int:
 
 
 def set_active(database: Path, email: str, *, active: bool) -> int:
+  """Set a user's active status and print the email on success."""
   try:
     count = db.set_user_active(database, email, active=active)
   except sqlite3.Error as error:
@@ -71,6 +74,7 @@ def set_active(database: Path, email: str, *, active: bool) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+  """Build the command-line parser for ``iou-users``."""
   parser = argparse.ArgumentParser(
     prog="iou-users",
     description="Manage users in the IOU bill splitter database.",
@@ -105,6 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+  """Run the ``iou-users`` command-line entry point."""
   parser = build_parser()
   args = parser.parse_args()
 

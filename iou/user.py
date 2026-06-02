@@ -13,6 +13,7 @@ class User:
   def to_insert_values(
     self,
   ) -> tuple[str, str, bool]:
+    """Return values matching the users insert statement order."""
     return (
       self.email,
       self.name,
@@ -21,6 +22,7 @@ class User:
 
   @staticmethod
   def from_db_row(row: dict[str, Any]) -> "User":
+    """Create a ``User`` from a database row mapping."""
     return User(
       email=row["email"],
       name=row["name"],
@@ -28,6 +30,7 @@ class User:
     )
 
   def asdict(self) -> dict[str, Any]:
+    """Return a JSON-serializable representation of the user."""
     return {
       "email": self.email,
       "name": self.name,

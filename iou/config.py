@@ -13,6 +13,7 @@ class AppConfigItems(TypedDict):
 
 
 def load_env_config() -> AppConfigItems:
+  """Load application config values from environment variables."""
   return {
     "LOG_LEVEL": os.getenv("LOG_LEVEL", "INFO").upper(),
     "DATABASE": Path(os.getenv("DATABASE", "iou.db")),

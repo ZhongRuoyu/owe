@@ -11,6 +11,7 @@ from iou.record import Record
 
 
 def dump_records(records: list[Record], output: Path) -> None:
+  """Write records to a CSV file at the given output path."""
   with output.open("w", encoding="utf-8", newline="") as csv_file:
     writer = csv.writer(csv_file)
     writer.writerow(Record.csv_header())
@@ -19,6 +20,7 @@ def dump_records(records: list[Record], output: Path) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
+  """Build the command-line parser for ``iou-dump``."""
   parser = argparse.ArgumentParser(
     prog="iou-dump",
     description="Dump records from the IOU database as CSV.",
@@ -39,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+  """Run the ``iou-dump`` command-line entry point."""
   parser = build_parser()
   args = parser.parse_args()
 

@@ -20,6 +20,7 @@ class Record:
   def to_insert_values(
     self,
   ) -> tuple[str, str, str, int, str, int, str | None, bool]:
+    """Return values matching the records insert statement order."""
     return (
       self.type,
       self.lender,
@@ -33,6 +34,7 @@ class Record:
 
   @staticmethod
   def from_db_row(row: dict[str, Any]) -> "Record":
+    """Create a ``Record`` from a database row mapping."""
     created_at = dt.datetime.fromtimestamp(
       row["created_at"] / 1000, tz=dt.timezone.utc
     )
@@ -50,6 +52,7 @@ class Record:
 
   @staticmethod
   def csv_header() -> tuple[str, str, str, str, str, str, str, str, str]:
+    """Return the CSV header used for record export."""
     return (
       "id",
       "type",
@@ -64,6 +67,7 @@ class Record:
 
   @staticmethod
   def from_csv_row(row: list[str]) -> "Record":
+    """Create a ``Record`` from a CSV row."""
     (
       record_id,
       record_type,
@@ -88,6 +92,7 @@ class Record:
     )
 
   def to_csv_row(self) -> tuple[int, str, str, str, str, str, str, str, int]:
+    """Return the record encoded as a CSV row."""
     return (
       self.id or 0,
       self.type,
@@ -101,6 +106,7 @@ class Record:
     )
 
   def asdict(self) -> dict[str, Any]:
+    """Return a JSON-serializable representation of the record."""
     return {
       "id": self.id,
       "type": self.type,
@@ -134,6 +140,7 @@ class AggregatedRecord:
   remarks: str | None
 
   def to_records(self) -> list[Record]:
+    """Split an aggregated record into per-borrower ``Record`` entries."""
     each_amount = ceildiv(self.amount, len(self.borrowers))
     created_at = dt.datetime.now(tz=dt.timezone.utc)
     return [

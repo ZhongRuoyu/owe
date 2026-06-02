@@ -11,6 +11,7 @@ def dict_factory(
   cursor: sqlite3.Cursor,
   row: tuple[Any, ...],
 ) -> dict[str, Any]:
+  """Convert a SQLite row tuple into a dict keyed by column name."""
   return dict(
     zip(
       [column[0] for column in cursor.description],
@@ -21,6 +22,7 @@ def dict_factory(
 
 
 def init(database: Path) -> None:
+  """Create database tables and views if they do not already exist."""
   with sqlite3.connect(database) as con:
     con.cursor().execute(
       dedent("""
@@ -77,6 +79,7 @@ def init(database: Path) -> None:
 
 
 def get_users(database: Path, *, active_only: bool = False) -> list[User]:
+  """Fetch users from the database ordered by display name."""
   with sqlite3.connect(database) as con:
     con.row_factory = dict_factory
     cur = con.cursor()
@@ -89,6 +92,7 @@ def get_users(database: Path, *, active_only: bool = False) -> list[User]:
 
 
 def add_user(database: Path, user: User) -> None:
+  """Insert a user row into the database."""
   with sqlite3.connect(database) as con:
     cur = con.cursor()
     cur.execute(
@@ -98,6 +102,7 @@ def add_user(database: Path, user: User) -> None:
 
 
 def set_user_active(database: Path, email: str, *, active: bool) -> int:
+  """Set a user's active flag and return the number of updated rows."""
   with sqlite3.connect(database) as con:
     cur = con.cursor()
     cur.execute(
@@ -108,6 +113,7 @@ def set_user_active(database: Path, email: str, *, active: bool) -> int:
 
 
 def get_records(database: Path, *, active_only: bool = False) -> list[Record]:
+  """Fetch records from the database ordered by ID."""
   with sqlite3.connect(database) as con:
     con.row_factory = dict_factory
     cur = con.cursor()
@@ -120,6 +126,7 @@ def get_records(database: Path, *, active_only: bool = False) -> list[Record]:
 
 
 def add_records(database: Path, records: list[Record]) -> None:
+  """Insert records and populate generated IDs on each record object."""
   with sqlite3.connect(database) as con:
     cur = con.cursor()
     cur.execute("PRAGMA foreign_keys = ON;")
@@ -149,6 +156,7 @@ def set_records_active(
   *,
   active: bool,
 ) -> int:
+  """Set the active flag for record IDs and return affected row count."""
   with sqlite3.connect(database) as con:
     cur = con.cursor()
     cur.executemany(
@@ -159,6 +167,7 @@ def set_records_active(
 
 
 def get_net_balances(database: Path) -> dict[str, int]:
+  """Return per-user net balances computed from active records."""
   with sqlite3.connect(database) as con:
     cur = con.cursor()
     cur.row_factory = dict_factory
