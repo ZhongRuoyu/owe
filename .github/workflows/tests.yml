@@ -20,7 +20,16 @@ defaults:
 
 jobs:
   tests:
-    name: Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,13 +38,14 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Setup uv
+      - name: Set up uv
         # zizmor: ignore[cache-poisoning] We never use the cache for releases.
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
+          python-version: ${{ matrix.python-version }}
           enable-cache: ${{ (github.event_name == 'push' && github.ref_type == 'branch') || github.event_name == 'pull_request' }}
       - name: Sync dependencies
-        run: uv sync --locked
+        run: uv sync --locked --all-groups --all-extras
       - name: Run Ruff formatter
         run: uvx ruff format --check
       - name: Run Ruff linter
