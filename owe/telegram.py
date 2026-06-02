@@ -24,7 +24,7 @@ def record_message(
   lender = try_get_user_name(record.lender, users_by_email)
   borrower = try_get_user_name(record.borrower, users_by_email)
   amount = record.amount / 100
-  message = f"{lender} -> {borrower}: {currency} {amount:.2f}"
+  message = f"[{record.type}] {lender} -> {borrower}: {currency} {amount:.2f}"
   if record.remarks:
     message += f" ({record.remarks})"
   return message
