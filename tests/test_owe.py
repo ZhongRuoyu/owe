@@ -46,7 +46,9 @@ class OweTests(unittest.TestCase):
     self.ctx.pop()
 
   def test_get_active_users_uses_active_filter(self) -> None:
-    """Ensure active-user lookup calls DB with ``active_only=True``."""
+    """
+    Ensure active-user lookup calls the database with ``active_only=True``.
+    """
     users = [
       User(email="user@example.com", name="User", active=True),
     ]
@@ -62,7 +64,9 @@ class OweTests(unittest.TestCase):
     )
 
   def test_get_records_returns_records_from_db(self) -> None:
-    """Ensure record lookup delegates to DB and returns rows unchanged."""
+    """
+    Ensure record lookup delegates to the database and returns rows unchanged.
+    """
     records = [make_record(1)]
     with patch.object(
       owe.database,
@@ -144,7 +148,9 @@ class OweTests(unittest.TestCase):
     thread_instance.start.assert_called_once_with()
 
   def test_set_records_active_updates_db_without_telegram(self) -> None:
-    """Ensure set_records_active updates DB without Telegram config."""
+    """
+    Ensure set_records_active updates the database without Telegram config.
+    """
     with (
       patch.object(owe.database, "set_records_active") as set_records_active,
       patch.object(owe.threading, "Thread") as thread,
