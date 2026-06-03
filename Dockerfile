@@ -13,11 +13,19 @@ RUN \
   --mount=type=cache,target=/root/.cache/uv \
   --mount=type=bind,source=uv.lock,target=uv.lock \
   --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+  <<RUN
+  set -eux
   uv sync --no-install-project
+RUN
 
 COPY . /app
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN \
+  --mount=type=cache,target=/root/.cache/uv \
+  <<RUN
+  set -eux
   uv sync
+  uv pip install gunicorn
+RUN
 
 FROM python:3.14-alpine
 

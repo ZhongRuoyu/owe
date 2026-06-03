@@ -37,7 +37,7 @@ You can get started with uv:
 ```sh
 # Run the development server
 uvx --with owe flask --app owe run
-# Or run the production server with gunicorn
+# Or run the production server with a WSGI server like Gunicorn
 uvx --with owe gunicorn "owe:create_app()"
 ```
 
@@ -48,7 +48,8 @@ Or if you prefer pip:
 pip install owe
 # Run the development server
 flask --app owe run
-# Or run the production server with gunicorn
+# Or run the production server with a WSGI server like Gunicorn
+pip install gunicorn
 gunicorn "owe:create_app()"
 ```
 
@@ -66,7 +67,7 @@ For example, to run API-only routes under `/owe`:
 # With Flask
 uvx --with owe flask --app "owe:create_app(api_only=True, url_prefix='/owe')" run
 
-# With gunicorn
+# With Gunicorn
 uvx --with owe gunicorn "owe:create_app(api_only=True, url_prefix='/owe')"
 ```
 
@@ -111,12 +112,16 @@ docker run -p 8000:8000 \
   -v /path/to/data:/data \
   -e OWE_DATABASE=/data/owe.db \
   -e OWE_CURRENCY=USD \
-  zhongruoyu/owe:main --bind "0.0.0.0:8000"
+  zhongruoyu/owe:main \
+  --bind "0.0.0.0:8000" \
+  --workers 4
 ```
 
-The container image runs gunicorn and accepts its command-line arguments, so you
-can customize the server configuration (e.g. `--bind` for socket binding) using
-standard gunicorn options; run with `--help` for details.
+The container image runs the [Gunicorn](https://gunicorn.org/) WSGI server and
+accepts its command-line arguments, so you can customize the server
+configuration (e.g. `--bind` for socket binding, `--workers` for the number of
+worker processes) using standard Gunicorn options.
+Run with `--help` for details.
 
 ## API Endpoints
 
