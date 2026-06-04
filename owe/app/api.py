@@ -2,10 +2,9 @@ import logging
 import sqlite3
 import threading
 from html import escape
-from pathlib import Path
 from typing import Any, cast
 
-from flask import Blueprint, Flask, Response, current_app, request
+from flask import Blueprint, Flask, current_app, request
 
 from owe.owe import Owe, SummaryTransaction
 from owe.record import AggregatedRecord
@@ -13,8 +12,6 @@ from owe.telegram_announcer import TelegramAnnouncer
 
 from .config import AppConfigItems
 
-API_PREFIX = "/api"
-STATIC_DIR = Path(__file__).resolve().parent / "static"
 OWE_SERVICE_EXTENSION_KEY = "owe.service"
 TELEGRAM_ANNOUNCER_EXTENSION_KEY = "owe.telegram_announcer"
 
@@ -84,35 +81,7 @@ def init(app: Flask) -> None:
     app.extensions[TELEGRAM_ANNOUNCER_EXTENSION_KEY] = None
 
 
-app = Blueprint(
-  "owe",
-  __name__,
-  url_prefix="",
-  static_folder=STATIC_DIR,
-  static_url_path="",
-)
-
-
-@app.after_request
-def add_csp(response: Response) -> Response:
-  """Attach a strict content security policy to outgoing responses."""
-  response.headers["Content-Security-Policy"] = (
-    "default-src 'self'; "
-    "script-src 'self' https://cdnjs.cloudflare.com; "
-    "style-src 'self' https://cdnjs.cloudflare.com; "
-    "img-src 'self' data:; "
-  )
-  return response
-
-
-@app.route("/")
-def index() -> Response:
-  """Serve the single-page application entry point."""
-  return app.send_static_file("index.html")
-
-
-api = Blueprint("api", __name__, url_prefix=API_PREFIX)
-app.register_blueprint(api)
+api = Blueprint("api", __name__)
 
 
 @api.route("/config")
