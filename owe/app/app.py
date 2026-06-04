@@ -122,7 +122,7 @@ def get_config() -> dict[str, Any]:
 @api.route("/users")
 def get_users() -> list[dict[str, Any]]:
   """Return active users for UI selection."""
-  users = app_owe().get_active_users()
+  users = app_owe().get_users(active_only=True)
   return [user.asdict() for user in users]
 
 
@@ -187,7 +187,7 @@ def add_records() -> tuple[dict[str, Any], int]:
   if not req:
     return {"success": False, "error": "Request body must be JSON"}, 400
 
-  users = owe_service.get_active_users()
+  users = owe_service.get_users(active_only=True)
   valid_emails = {u.email for u in users}
   valid, error = validate_add_records_request(req, valid_emails)
   if not valid:

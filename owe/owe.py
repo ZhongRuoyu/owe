@@ -34,10 +34,6 @@ class Owe:
     """Return users, optionally filtered to active users."""
     return self.database.get_users(active_only=active_only)
 
-  def get_active_users(self) -> list[User]:
-    """Return active users."""
-    return self.get_users(active_only=True)
-
   def get_records(self, *, active_only: bool = False) -> list[Record]:
     """Return records, optionally filtered to active records."""
     return self.database.get_records(active_only=active_only)

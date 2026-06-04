@@ -40,7 +40,7 @@ class OweTests(unittest.TestCase):
     assert result == users
     self.database.get_users.assert_called_once_with(active_only=False)
 
-  def test_get_active_users_uses_active_filter(self) -> None:
+  def test_get_users_returns_active_users_when_active_only(self) -> None:
     """
     Ensure active-user lookup calls the database with ``active_only=True``.
     """
@@ -49,7 +49,7 @@ class OweTests(unittest.TestCase):
     ]
     self.database.get_users.return_value = users
 
-    result = self.owe.get_active_users()
+    result = self.owe.get_users(active_only=True)
 
     assert result == users
     self.database.get_users.assert_called_once_with(active_only=True)
