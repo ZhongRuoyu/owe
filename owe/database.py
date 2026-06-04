@@ -7,6 +7,9 @@ from urllib.request import pathname2url
 from .record import Record
 from .user import User
 
+SQLITE_DEFAULT_CONNECT_TIMEOUT = 5
+SQLITE_DEFAULT_BUSY_TIMEOUT_MS = 5000
+
 
 def dict_factory(
   cursor: sqlite3.Cursor,
@@ -33,10 +36,16 @@ class Database:
     mode = "rwc" if create else "rw"
     self.uri = f"file:{file}?mode={mode}"
 
-  def _connect(self) -> sqlite3.Connection:
+  def _connect(
+    self,
+    *,
+    connect_timeout: float = SQLITE_DEFAULT_CONNECT_TIMEOUT,
+    busy_timeout_ms: int = SQLITE_DEFAULT_BUSY_TIMEOUT_MS,
+  ) -> sqlite3.Connection:
     """Create an SQLite connection configured for integrity and contention."""
-    conn = sqlite3.connect(self.uri, uri=True)
+    conn = sqlite3.connect(self.uri, uri=True, timeout=connect_timeout)
     conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute(f"PRAGMA busy_timeout = {busy_timeout_ms};")
     conn.row_factory = dict_factory
     return conn
 
