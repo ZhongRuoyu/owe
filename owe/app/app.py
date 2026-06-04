@@ -25,12 +25,12 @@ class AppServiceTypeError(TypeError):
   """Raised when an app-level service has an unexpected type."""
 
 
-def app_config() -> AppConfigItems:
+def _app_config() -> AppConfigItems:
   """Return typed app config values for the current request context."""
   return cast("AppConfigItems", current_app.config)
 
 
-def app_owe() -> Owe:
+def _app_owe() -> Owe:
   """Return the Owe service bound to the current Flask app instance."""
   owe_service = current_app.extensions.get(OWE_SERVICE_EXTENSION_KEY)
   if not isinstance(owe_service, Owe):
@@ -38,7 +38,7 @@ def app_owe() -> Owe:
   return owe_service
 
 
-def app_telegram_announcer() -> TelegramAnnouncer | None:
+def _app_telegram_announcer() -> TelegramAnnouncer | None:
   """Return app-level Telegram announcer, or ``None`` when disabled."""
   announcer = current_app.extensions.get(TELEGRAM_ANNOUNCER_EXTENSION_KEY)
   if announcer is None:
@@ -46,6 +46,16 @@ def app_telegram_announcer() -> TelegramAnnouncer | None:
   if not isinstance(announcer, TelegramAnnouncer):
     raise AppServiceTypeError
   return announcer
+
+
+def _get_requester() -> str:
+  """Return requester identity from configured header or remote address."""
+  request_email_header = _app_config()["REQUEST_EMAIL_HEADER"]
+  if request_email_header:
+    email = request.headers.get(request_email_header)
+    if email:
+      return email
+  return request.remote_addr or "unknown"
 
 
 def init(app: Flask) -> None:
@@ -72,16 +82,6 @@ def init(app: Flask) -> None:
     )
   else:
     app.extensions[TELEGRAM_ANNOUNCER_EXTENSION_KEY] = None
-
-
-def get_requester() -> str:
-  """Return requester identity from configured header or remote address."""
-  request_email_header = app_config()["REQUEST_EMAIL_HEADER"]
-  if request_email_header:
-    email = request.headers.get(request_email_header)
-    if email:
-      return email
-  return request.remote_addr or "unknown"
 
 
 app = Blueprint(
@@ -118,24 +118,24 @@ app.register_blueprint(api)
 @api.route("/config")
 def get_config() -> dict[str, Any]:
   """Return client-facing configuration values."""
-  return {"currency": app_config()["CURRENCY"]}
+  return {"currency": _app_config()["CURRENCY"]}
 
 
 @api.route("/users")
 def get_users() -> list[dict[str, Any]]:
   """Return active users for UI selection."""
-  users = app_owe().get_users(active_only=True)
+  users = _app_owe().get_users(active_only=True)
   return [user.to_dict() for user in users]
 
 
 @api.route("/records")
 def get_records() -> dict[str, dict[str, Any]]:
   """Return all records keyed by record ID as strings."""
-  records = app_owe().get_records()
+  records = _app_owe().get_records()
   return {str(record.id): record.to_dict() for record in records}
 
 
-def validate_add_records_request(  # noqa: PLR0911
+def _validate_add_records_request(  # noqa: PLR0911
   req: dict[str, Any],
   valid_emails: set[str],
 ) -> tuple[bool, str]:
@@ -184,14 +184,14 @@ def validate_add_records_request(  # noqa: PLR0911
 @api.route("/records", methods=["POST"])
 def add_records() -> tuple[dict[str, Any], int]:
   """Create an aggregated record and persist its split entries."""
-  owe_service = app_owe()
+  owe_service = _app_owe()
   req = request.get_json()
   if not req:
     return {"success": False, "error": "Request body must be JSON"}, 400
 
   users = owe_service.get_users(active_only=True)
   valid_emails = {u.email for u in users}
-  valid, error = validate_add_records_request(req, valid_emails)
+  valid, error = _validate_add_records_request(req, valid_emails)
   if not valid:
     return {"success": False, "error": error}, 400
 
@@ -200,7 +200,7 @@ def add_records() -> tuple[dict[str, Any], int]:
     lender=req["lender"],
     borrowers=req["borrowers"],
     amount=req["amount"],
-    created_by=get_requester(),
+    created_by=_get_requester(),
     remarks=req["remarks"],
   )
   try:
@@ -209,7 +209,7 @@ def add_records() -> tuple[dict[str, Any], int]:
     logger.exception("Database error in add_records")
     return {"success": False, "error": "Database error"}, 500
 
-  announcer = app_telegram_announcer()
+  announcer = _app_telegram_announcer()
   if announcer:
     threading.Thread(
       target=announcer.announce_records,
@@ -223,7 +223,7 @@ def add_records() -> tuple[dict[str, Any], int]:
 @api.route("/records/status", methods=["PATCH"])
 def set_records_active() -> tuple[dict[str, Any], int]:
   """Update the active flag for a batch of records."""
-  owe_service = app_owe()
+  owe_service = _app_owe()
   req = request.get_json()
   if not req:
     return {"success": False, "error": "Request body must be JSON"}, 400
@@ -240,11 +240,11 @@ def set_records_active() -> tuple[dict[str, Any], int]:
 
   try:
     owe_service.set_records_active(ids, active=active)
-    announcer = app_telegram_announcer()
+    announcer = _app_telegram_announcer()
     if announcer:
       records = owe_service.get_records_by_ids(ids)
       users = owe_service.get_users()
-      requester = get_requester()
+      requester = _get_requester()
       threading.Thread(
         target=announcer.announce_record_status_change,
         args=(
@@ -265,4 +265,4 @@ def set_records_active() -> tuple[dict[str, Any], int]:
 @api.route("/summary")
 def summary() -> list[SummaryTransaction]:
   """Return settlement transactions computed from net balances."""
-  return app_owe().get_summary()
+  return _app_owe().get_summary()
