@@ -5,10 +5,8 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from owe.user import User
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import owe.database
+from owe.user import User
 
 
 def create_user(database: Path, email: str, name: str) -> int:
