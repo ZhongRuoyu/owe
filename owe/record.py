@@ -33,7 +33,7 @@ class Record:
     )
 
   @staticmethod
-  def from_db_row(row: dict[str, Any]) -> "Record":
+  def from_database_row(row: dict[str, Any]) -> "Record":
     """Create a ``Record`` from a database row mapping."""
     created_at = dt.datetime.fromtimestamp(
       row["created_at"] / 1000, tz=dt.timezone.utc
@@ -105,7 +105,7 @@ class Record:
       int(self.active),
     )
 
-  def asdict(self) -> dict[str, Any]:
+  def to_dict(self) -> dict[str, Any]:
     """Return a JSON-serializable representation of the record."""
     return {
       "id": self.id,

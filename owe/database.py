@@ -98,7 +98,7 @@ class Database:
         query += " WHERE active = TRUE"
       query += " ORDER BY name;"
       rows = cur.execute(query).fetchall()
-    return [User.from_db_row(row) for row in rows]
+    return [User.from_database_row(row) for row in rows]
 
   def add_user(self, user: User) -> None:
     """Insert a user row into the database."""
@@ -128,7 +128,7 @@ class Database:
         query += " WHERE active = TRUE"
       query += " ORDER BY id;"
       rows = cur.execute(query).fetchall()
-    return [Record.from_db_row(row) for row in rows]
+    return [Record.from_database_row(row) for row in rows]
 
   def add_records(self, records: list[Record]) -> None:
     """Insert records and populate generated IDs on each record object."""

@@ -125,14 +125,14 @@ def get_config() -> dict[str, Any]:
 def get_users() -> list[dict[str, Any]]:
   """Return active users for UI selection."""
   users = app_owe().get_users(active_only=True)
-  return [user.asdict() for user in users]
+  return [user.to_dict() for user in users]
 
 
 @api.route("/records")
 def get_records() -> dict[str, dict[str, Any]]:
   """Return all records keyed by record ID as strings."""
   records = app_owe().get_records()
-  return {str(record.id): record.asdict() for record in records}
+  return {str(record.id): record.to_dict() for record in records}
 
 
 def validate_add_records_request(  # noqa: PLR0911

@@ -21,7 +21,7 @@ class User:
     )
 
   @staticmethod
-  def from_db_row(row: dict[str, Any]) -> "User":
+  def from_database_row(row: dict[str, Any]) -> "User":
     """Create a ``User`` from a database row mapping."""
     return User(
       email=row["email"],
@@ -29,7 +29,7 @@ class User:
       active=bool(row["active"]),
     )
 
-  def asdict(self) -> dict[str, Any]:
+  def to_dict(self) -> dict[str, Any]:
     """Return a JSON-serializable representation of the user."""
     return {
       "email": self.email,
