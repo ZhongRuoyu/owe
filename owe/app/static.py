@@ -18,6 +18,7 @@ def add_csp(response: Response) -> Response:
   """Attach a strict content security policy to outgoing responses."""
   response.headers["Content-Security-Policy"] = (
     "default-src 'self'; "
+    "connect-src 'self' https://cdnjs.cloudflare.com; "
     "script-src 'self' https://cdnjs.cloudflare.com; "
     "style-src 'self' https://cdnjs.cloudflare.com; "
     "img-src 'self' data:; "
