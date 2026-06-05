@@ -66,6 +66,7 @@ def init(app: Flask) -> None:
   owe_service = Owe(
     config["DATABASE"],
     create_database=True,
+    logger=logger,
   )
   owe_service.init()
   app.extensions[OWE_SERVICE_EXTENSION_KEY] = owe_service
