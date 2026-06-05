@@ -10,10 +10,10 @@ from flask import Blueprint, Flask, current_app, request
 from owe.database import SqliteDatabase
 from owe.owe import Owe
 from owe.record import AggregatedRecord, RecordType
-from owe.telegram_announcer import TelegramAnnouncer
 
 from .config import AppConfigItems
 from .schema import AddRecordsRequest, SetRecordsActiveRequest, parse
+from .telegram_announcer import TelegramAnnouncer
 
 OWE_SERVICE_EXTENSION_KEY = "owe.service"
 TELEGRAM_ANNOUNCER_EXTENSION_KEY = "owe.telegram_announcer"
