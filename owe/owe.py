@@ -1,26 +1,10 @@
-from dataclasses import dataclass
 from logging import Logger
 from pathlib import Path
-from typing import Any
 
 from .database import Database
 from .record import AggregatedRecord, Record
+from .summary_transaction import SummaryTransaction
 from .user import User
-
-
-@dataclass(slots=True)
-class SummaryTransaction:
-  from_user: str
-  to_user: str
-  amount: int
-
-  def to_dict(self) -> dict[str, Any]:
-    """Return a JSON-serializable representation of the summary transaction."""
-    return {
-      "from": self.from_user,
-      "to": self.to_user,
-      "amount": self.amount,
-    }
 
 
 class Owe:
