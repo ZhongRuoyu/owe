@@ -66,7 +66,7 @@ class Owe:
       self._logger.info(
         "%d record(s) of type %s added by %s",
         len(records),
-        record.type,
+        record.type.value,
         record.created_by,
       )
     return records

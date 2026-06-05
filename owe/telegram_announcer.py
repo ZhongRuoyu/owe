@@ -122,7 +122,8 @@ class TelegramAnnouncer:
     borrower = self._try_get_user_name(record.borrower, users_by_email)
     amount = record.amount / 100
     message = (
-      f"[{record.type}] {lender} -> {borrower}: {self._currency} {amount:.2f}"
+      f"[{record.type.value}] {lender} -> {borrower}: "
+      f"{self._currency} {amount:.2f}"
     )
     if record.remarks:
       message += f" ({record.remarks})"

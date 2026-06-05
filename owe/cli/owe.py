@@ -70,7 +70,7 @@ def print_records(records: list[Record], *, output_format: str) -> None:
         rows=[
           [
             str(record.id),
-            record.type,
+            record.type.value,
             record.lender,
             record.borrower,
             str(record.amount),
@@ -331,7 +331,7 @@ def build_parser() -> argparse.ArgumentParser:
   record_add_parser.add_argument(
     "--type",
     help="type of the aggregated record",
-    choices=["DEBT", "PAYMENT"],
+    choices=[record_type.value for record_type in RecordType],
     required=True,
   )
   record_add_parser.add_argument(

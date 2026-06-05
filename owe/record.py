@@ -28,7 +28,7 @@ class Record:
   ) -> tuple[str, str, str, int, str, int, str | None, bool]:
     """Return values matching the records insert statement order."""
     return (
-      self.type,
+      self.type.value,
       self.lender,
       self.borrower,
       self.amount,
@@ -101,7 +101,7 @@ class Record:
     """Return values matching the ``csv_header`` CSV export order."""
     return (
       self.id or 0,
-      self.type,
+      self.type.value,
       self.lender,
       self.borrower,
       f"{self.amount / 100:.2f}",
@@ -115,7 +115,7 @@ class Record:
     """Return a JSON-serializable representation of the record."""
     return {
       "id": self.id,
-      "type": self.type,
+      "type": self.type.value,
       "lender": self.lender,
       "borrower": self.borrower,
       "amount": self.amount,
