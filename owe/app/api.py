@@ -55,6 +55,13 @@ def _get_requester() -> str:
     email = request.headers.get(request_email_header)
     if email:
       return email
+
+  trust_proxy = _app_config()["TRUST_PROXY"]
+  if trust_proxy:
+    x_forwarded_for = request.headers.get("X-Forwarded-For")
+    if x_forwarded_for and (ip := x_forwarded_for.split(",")[0].strip()):
+      return ip
+
   return request.remote_addr or "unknown"
 
 

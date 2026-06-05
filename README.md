@@ -168,6 +168,12 @@ The application can be configured with the following environment variables:
   user by their email address.
   When unset, the remote IP address will be used to identify the user instead.
   Default: unset.
+- `OWE_TRUST_PROXY`: Whether to trust the `X-Forwarded-For` header for the
+  remote IP address.
+  This should be set to a non-empty value (e.g., `true`) when running behind a
+  reverse proxy that sets this header, and unset otherwise, to prevent IP
+  spoofing.
+  Default: unset (i.e. do not trust the header).
 - `OWE_TELEGRAM_BOT_TOKEN`: Telegram bot token for notifications.
   Default: unset.
 - `OWE_TELEGRAM_CHAT_ID`: Telegram chat ID for notifications.
