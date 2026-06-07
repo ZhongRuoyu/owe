@@ -23,7 +23,7 @@ RUN \
   --mount=type=cache,target=/root/.cache/uv \
   <<RUN
   set -eux
-  uv sync
+  uv sync --all-groups --all-extras
   uv pip install gunicorn
 RUN
 
