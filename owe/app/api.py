@@ -93,11 +93,11 @@ def _get_requester(request: Request) -> str:
   """Return requester identity from configured header or remote address."""
   config = _app_config(request)
 
-  request_email_header = config.request_email_header
-  if request_email_header:
-    email = request.headers.get(request_email_header)
-    if email:
-      return email
+  request_id_header = config.request_id_header
+  if request_id_header:
+    user_id = request.headers.get(request_id_header)
+    if user_id:
+      return user_id
 
   trust_proxy = config.trust_proxy
   if trust_proxy:
@@ -190,18 +190,18 @@ async def get_records(request: Request) -> GetRecordsResponse:
 
 def _validate_add_records_request(
   req: AddRecordsRequest,
-  valid_emails: set[str],
+  valid_user_ids: set[str],
 ) -> str | None:
   """Validate add-record user references after model validation."""
   lender = req.lender
   borrowers = req.borrowers
 
-  if lender not in valid_emails:
+  if lender not in valid_user_ids:
     return f"Unknown lender: {escape(lender)}"
 
-  if unknown_borrowers := set(borrowers) - valid_emails:
+  if unknown_borrowers := set(borrowers) - valid_user_ids:
     borrowers_str = escape(
-      ", ".join(email for email in unknown_borrowers),
+      ", ".join(user_id for user_id in unknown_borrowers),
     )
     return f"Unknown borrower(s): {borrowers_str}"
 
@@ -222,8 +222,8 @@ async def add_records(
     logger.exception("Database error in add_records")
     raise APIDatabaseError from None
 
-  valid_emails = {user.email for user in users}
-  error = _validate_add_records_request(body, valid_emails)
+  valid_user_ids = {user.id for user in users}
+  error = _validate_add_records_request(body, valid_user_ids)
   if error is not None:
     raise APIError(error, status.HTTP_400_BAD_REQUEST) from None
 

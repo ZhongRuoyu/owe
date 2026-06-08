@@ -21,7 +21,7 @@ ModelT = TypeVar("ModelT", bound=BaseModel)
 class User(BaseModel):
   """A user in the Owe system."""
 
-  email: str
+  id: str
   name: str
   active: bool
 
@@ -29,7 +29,7 @@ class User(BaseModel):
   def from_owe_user(user: OweUser) -> "User":
     """Create an API user model from an Owe user."""
     return User(
-      email=user.email,
+      id=user.id,
       name=user.name,
       active=user.active,
     )

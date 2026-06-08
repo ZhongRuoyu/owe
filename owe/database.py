@@ -57,7 +57,7 @@ class Database(ABC):
     """Insert a user row into the database."""
 
   @abstractmethod
-  def set_user_active(self, email: str, *, active: bool) -> int:
+  def set_user_active(self, user_id: str, *, active: bool) -> int:
     """Set a user's active flag and return the number of updated rows."""
 
   @abstractmethod
@@ -106,7 +106,7 @@ class SqliteDatabase(Database):
         conn.cursor().execute(
           dedent("""
             CREATE TABLE IF NOT EXISTS Users(
-              email  TEXT PRIMARY KEY,
+              id     TEXT PRIMARY KEY,
               name   TEXT UNIQUE NOT NULL,
               active BOOLEAN DEFAULT TRUE
             );
@@ -124,8 +124,8 @@ class SqliteDatabase(Database):
               remarks    TEXT,
               active     BOOLEAN DEFAULT TRUE,
               CHECK(type IN ({", ".join(f"'{t.value}'" for t in RecordType)})),
-              FOREIGN KEY(lender) REFERENCES Users(email),
-              FOREIGN KEY(borrower) REFERENCES Users(email),
+              FOREIGN KEY(lender) REFERENCES Users(id),
+              FOREIGN KEY(borrower) REFERENCES Users(id),
               CHECK(lender != borrower),
               CHECK(amount > 0)
             );
@@ -180,30 +180,30 @@ class SqliteDatabase(Database):
       try:
         cur = conn.cursor()
         cur.execute(
-          "INSERT INTO Users(email, name, active) VALUES(?, ?, ?);",
+          "INSERT INTO Users(id, name, active) VALUES(?, ?, ?);",
           user.to_insert_values(),
         )
       except sqlite3.IntegrityError as error:
-        msg = "User with the same email or name already exists"
+        msg = "User with the same ID or name already exists"
         raise UserAlreadyExistsError(msg) from error
       except sqlite3.Error as error:
         msg = f"Failed to add user: {error}"
         raise DatabaseError(msg) from error
 
-  def set_user_active(self, email: str, *, active: bool) -> int:
+  def set_user_active(self, user_id: str, *, active: bool) -> int:
     """Set a user's active flag and return the number of updated rows."""
     with closing(self._connect()) as conn, conn:
       try:
         cur = conn.cursor()
         cur.execute(
-          "UPDATE Users SET active = ? WHERE email = ?;",
-          (active, email),
+          "UPDATE Users SET active = ? WHERE id = ?;",
+          (active, user_id),
         )
       except sqlite3.Error as error:
         msg = f"Failed to update user: {error}"
         raise DatabaseError(msg) from error
       if cur.rowcount == 0:
-        msg = f"No user found with email {email}"
+        msg = f"No user found with ID {user_id}"
         raise UserNotFoundError(msg)
       return cur.rowcount
 

@@ -38,10 +38,10 @@ def print_users(users: list[User], *, output_format: str) -> None:
   match output_format:
     case "table":
       print_table(
-        header=["EMAIL", "NAME", "STATUS"],
+        header=["ID", "NAME", "STATUS"],
         rows=[
           [
-            user.email,
+            user.id,
             user.name,
             "active" if user.active else "inactive",
           ]
@@ -138,28 +138,28 @@ def list_users(owe: Owe, *, active_only: bool, output_format: str) -> int:
   return 0
 
 
-def add_user(owe: Owe, email: str, name: str) -> int:
-  """Add a user and print the new user's email on success."""
-  user = User(email, name)
+def add_user(owe: Owe, user_id: str, name: str) -> int:
+  """Add a user and print the new user's ID on success."""
+  user = User(user_id, name)
   try:
     owe.add_user(user)
   except DatabaseError as error:
     print(f"Error: {error}", file=sys.stderr)
     return 1
 
-  print(user.email)
+  print(user.id)
   return 0
 
 
-def set_user_active(owe: Owe, email: str, *, active: bool) -> int:
-  """Set a user's active status and print the email on success."""
+def set_user_active(owe: Owe, user_id: str, *, active: bool) -> int:
+  """Set a user's active status and print the ID on success."""
   try:
-    owe.set_user_active(email, active=active)
+    owe.set_user_active(user_id, active=active)
   except DatabaseError as error:
     print(f"Error: {error}", file=sys.stderr)
     return 1
 
-  print(email)
+  print(user_id)
   return 0
 
 
@@ -279,8 +279,8 @@ def build_parser() -> argparse.ArgumentParser:
     help="add a new user",
   )
   user_add_parser.add_argument(
-    "email",
-    help="user's email address",
+    "id",
+    help="user ID",
   )
   user_add_parser.add_argument(
     "name",
@@ -288,19 +288,19 @@ def build_parser() -> argparse.ArgumentParser:
   )
   user_activate_parser = user_command.add_parser(
     "activate",
-    help="activate a user by email",
+    help="activate a user by ID",
   )
   user_activate_parser.add_argument(
-    "email",
-    help="email of the user to activate",
+    "id",
+    help="ID of the user to activate",
   )
   user_deactivate_parser = user_command.add_parser(
     "deactivate",
-    help="deactivate a user by email",
+    help="deactivate a user by ID",
   )
   user_deactivate_parser.add_argument(
-    "email",
-    help="email of the user to deactivate",
+    "id",
+    help="ID of the user to deactivate",
   )
 
   record_parser = command.add_parser(
@@ -341,12 +341,12 @@ def build_parser() -> argparse.ArgumentParser:
   )
   record_add_parser.add_argument(
     "--lender",
-    help="email of the lender",
+    help="ID of the lender",
     required=True,
   )
   record_add_parser.add_argument(
     "--borrower",
-    help="email of the borrower (repeat for multiple borrowers)",
+    help="ID of the borrower (repeat for multiple borrowers)",
     required=True,
     metavar="BORROWER",
     dest="borrowers",
@@ -360,7 +360,7 @@ def build_parser() -> argparse.ArgumentParser:
   )
   record_add_parser.add_argument(
     "--created-by",
-    help="email of the user who created the record",
+    help="ID of the user who created the record",
     required=True,
   )
   record_add_parser.add_argument(
@@ -438,11 +438,11 @@ def handle_user_command(owe: Owe, args: argparse.Namespace) -> int:
         output_format=args.format,
       )
     case "add":
-      result = add_user(owe, args.email, args.name)
+      result = add_user(owe, args.id, args.name)
     case "activate":
-      result = set_user_active(owe, args.email, active=True)
+      result = set_user_active(owe, args.id, active=True)
     case "deactivate":
-      result = set_user_active(owe, args.email, active=False)
+      result = set_user_active(owe, args.id, active=False)
   if result is not None:
     return result
   return 1

@@ -56,7 +56,7 @@ class TelegramAnnouncer:
 
   def _format_records(self, records: list[Record], users: list[User]) -> str:
     """Format grouped new-record notifications for Telegram."""
-    users_by_email = {user.email: user for user in users}
+    users_by_id = {user.id: user for user in users}
 
     records_by_creator: dict[str, list[Record]] = {}
     for record in records:
@@ -65,14 +65,14 @@ class TelegramAnnouncer:
 
     messages = []
     for creator, creator_records in records_by_creator.items():
-      creator_name = self._try_get_user_name(creator, users_by_email)
+      creator_name = self._try_get_user_name(creator, users_by_id)
       record_count = len(creator_records)
       records_word = "record" if record_count == 1 else "records"
       message = (
         f"{record_count} new Owe {records_word} added by {creator_name}:\n"
       )
       for record in creator_records:
-        message += f"- {self._record_message(record, users_by_email)}\n"
+        message += f"- {self._record_message(record, users_by_id)}\n"
       messages.append(message)
     return "\n\n".join(messages)
 
@@ -85,9 +85,9 @@ class TelegramAnnouncer:
     active: bool,
   ) -> str:
     """Format record status update notifications for Telegram."""
-    users_by_email = {user.email: user for user in users}
+    users_by_id = {user.id: user for user in users}
 
-    requester_name = self._try_get_user_name(requester, users_by_email)
+    requester_name = self._try_get_user_name(requester, users_by_id)
     record_count = len(records)
     records_word = "record" if record_count == 1 else "records"
     action = "activated" if active else "canceled"
@@ -95,7 +95,7 @@ class TelegramAnnouncer:
       f"{record_count} Owe {records_word} {action} by {requester_name}:\n"
     )
     for record in records:
-      message += f"- {self._record_message(record, users_by_email)}\n"
+      message += f"- {self._record_message(record, users_by_id)}\n"
     return message
 
   async def _post_message(self, message: str) -> None:
@@ -109,11 +109,11 @@ class TelegramAnnouncer:
   def _record_message(
     self,
     record: Record,
-    users_by_email: dict[str, User],
+    users_by_id: dict[str, User],
   ) -> str:
     """Format one record as a human-readable notification line."""
-    lender = self._try_get_user_name(record.lender, users_by_email)
-    borrower = self._try_get_user_name(record.borrower, users_by_email)
+    lender = self._try_get_user_name(record.lender, users_by_id)
+    borrower = self._try_get_user_name(record.borrower, users_by_id)
     amount = record.amount / 100
     message = (
       f"[{record.type.value}] {lender} -> {borrower}: "
@@ -124,8 +124,8 @@ class TelegramAnnouncer:
     return message
 
   @staticmethod
-  def _try_get_user_name(email: str, users_by_email: dict[str, User]) -> str:
-    """Resolve a user email to display name, falling back to the email."""
-    if email in users_by_email:
-      return users_by_email[email].name
-    return email
+  def _try_get_user_name(user_id: str, users_by_id: dict[str, User]) -> str:
+    """Resolve a user ID to display name, falling back to the ID."""
+    if user_id in users_by_id:
+      return users_by_id[user_id].name
+    return user_id

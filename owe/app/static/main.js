@@ -93,7 +93,7 @@ async function updateUsers() {
       input.name = id;
       input.value = user.name;
       input.id = `${id}-${user.name}`;
-      input.setAttribute("x-user-email", user.email);
+      input.setAttribute("x-user-id", user.id);
       input.required = id != "borrower";
       input.autocomplete = "off";
       document.getElementById(id).appendChild(input);
@@ -110,7 +110,7 @@ async function updateUsers() {
 async function updateRecords() {
   const [users, records] = await Promise.all([getUsers(), getRecords()]);
   const userMap = Object.fromEntries(
-    users.map(user => [user.email, user.name]),
+    users.map(user => [user.id, user.name]),
   );
   records.forEach(record => {
     record.lender = userMap[record.lender] ?? record.lender;
@@ -167,7 +167,7 @@ async function updateRecords() {
 async function updateSummary() {
   const [users, summary] = await Promise.all([getUsers(), getSummary()]);
   const userMap = Object.fromEntries(
-    users.map(user => [user.email, user.name]),
+    users.map(user => [user.id, user.name]),
   );
 
   const table = document.getElementById("tbody-summary");
@@ -228,7 +228,7 @@ async function addRecord() {
 
   const lender =
     document.querySelector("input[name='lender']:checked")
-      ?.getAttribute("x-user-email");
+      ?.getAttribute("x-user-id");
   if (lender === null) {
     showAlert("Please select a lender.", "warning");
     return;
@@ -238,7 +238,7 @@ async function addRecord() {
     ...document
       .querySelectorAll("input[name='borrower']:checked"),
   ]
-    .map(node => node.getAttribute("x-user-email"));
+    .map(node => node.getAttribute("x-user-id"));
   if (borrowers.length === 0) {
     showAlert("Please select at least one borrower.", "warning");
     return;

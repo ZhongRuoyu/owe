@@ -17,10 +17,10 @@ def make_record(record_id: int) -> Record:
   return Record(
     id=record_id,
     type=RecordType.DEBT,
-    lender="lender@example.com",
-    borrower=f"borrower-{record_id}@example.com",
+    lender="lender",
+    borrower=f"borrower-{record_id}",
     amount=100,
-    created_by="creator@example.com",
+    created_by="creator",
     created_at=dt.datetime.now(tz=dt.timezone.utc),
     remarks=None,
   )
@@ -35,8 +35,8 @@ class OweTests(unittest.TestCase):
   def test_get_users_returns_all_users_by_default(self) -> None:
     """Ensure user lookup delegates to the database without a filter."""
     users = [
-      User(email="one@example.com", name="One", active=True),
-      User(email="two@example.com", name="Two", active=False),
+      User(id="one", name="One", active=True),
+      User(id="two", name="Two", active=False),
     ]
     self.database.get_users.return_value = users
 
@@ -50,7 +50,7 @@ class OweTests(unittest.TestCase):
     Ensure active-user lookup calls the database with ``active_only=True``.
     """
     users = [
-      User(email="user@example.com", name="User", active=True),
+      User(id="user", name="User", active=True),
     ]
     self.database.get_users.return_value = users
 
@@ -61,7 +61,7 @@ class OweTests(unittest.TestCase):
 
   def test_add_user_inserts_user_into_database(self) -> None:
     """Ensure add_user delegates user insertion to the database."""
-    user = User(email="new@example.com", name="New User")
+    user = User(id="new", name="New User")
 
     self.owe.add_user(user)
 
@@ -74,13 +74,13 @@ class OweTests(unittest.TestCase):
     self.database.set_user_active.return_value = 1
 
     count = self.owe.set_user_active(
-      "user@example.com",
+      "user",
       active=False,
     )
 
     assert count == 1
     self.database.set_user_active.assert_called_once_with(
-      "user@example.com",
+      "user",
       active=False,
     )
 
@@ -112,10 +112,10 @@ class OweTests(unittest.TestCase):
     """Ensure add_records inserts split records and returns them."""
     record = AggregatedRecord(
       type=RecordType.DEBT,
-      lender="lender@example.com",
-      borrowers=["borrower-1@example.com", "borrower-2@example.com"],
+      lender="lender",
+      borrowers=["borrower-1", "borrower-2"],
       amount=101,
-      created_by="creator@example.com",
+      created_by="creator",
       remarks="Dinner",
     )
 
@@ -124,8 +124,8 @@ class OweTests(unittest.TestCase):
     self.database.add_records.assert_called_once_with(inserted_records)
     assert [r.amount for r in inserted_records] == [51, 51]
     assert [r.borrower for r in inserted_records] == [
-      "borrower-1@example.com",
-      "borrower-2@example.com",
+      "borrower-1",
+      "borrower-2",
     ]
 
   def test_set_records_active_updates_database(self) -> None:
@@ -139,11 +139,11 @@ class OweTests(unittest.TestCase):
   def test_get_summary_returns_minimal_transactions(self) -> None:
     """Ensure summary computes the expected minimal settlement transfers."""
     balances = {
-      "alice@example.com": 80,
-      "bob@example.com": 20,
-      "carol@example.com": -50,
-      "dave@example.com": -30,
-      "eve@example.com": -20,
+      "alice": 80,
+      "bob": 20,
+      "carol": -50,
+      "dave": -30,
+      "eve": -20,
     }
     self.database.get_net_balances.return_value = balances
 
@@ -151,18 +151,18 @@ class OweTests(unittest.TestCase):
 
     assert summary == [
       SummaryTransaction(
-        from_user="carol@example.com",
-        to_user="alice@example.com",
+        from_user="carol",
+        to_user="alice",
         amount=50,
       ),
       SummaryTransaction(
-        from_user="dave@example.com",
-        to_user="alice@example.com",
+        from_user="dave",
+        to_user="alice",
         amount=30,
       ),
       SummaryTransaction(
-        from_user="eve@example.com",
-        to_user="bob@example.com",
+        from_user="eve",
+        to_user="bob",
         amount=20,
       ),
     ]

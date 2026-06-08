@@ -33,14 +33,14 @@ class Owe:
     """Add a user to the database."""
     self._database.add_user(user)
     if self._logger:
-      self._logger.info("User %s with name %s added", user.email, user.name)
+      self._logger.info("User %s with name %s added", user.id, user.name)
 
-  def set_user_active(self, email: str, *, active: bool) -> int:
+  def set_user_active(self, user_id: str, *, active: bool) -> int:
     """Set a user's active status."""
-    result = self._database.set_user_active(email, active=active)
+    result = self._database.set_user_active(user_id, active=active)
     if self._logger:
       status = "activated" if active else "deactivated"
-      self._logger.info("User %s %s", email, status)
+      self._logger.info("User %s %s", user_id, status)
     return result
 
   def get_records(self, *, active_only: bool = False) -> list[Record]:

@@ -6,7 +6,7 @@ from typing import Any
 class User:
   """A user in the Owe system."""
 
-  email: str
+  id: str
   name: str
   active: bool = True
 
@@ -15,7 +15,7 @@ class User:
   ) -> tuple[str, str, bool]:
     """Return values matching the users insert statement order."""
     return (
-      self.email,
+      self.id,
       self.name,
       self.active,
     )
@@ -24,7 +24,7 @@ class User:
   def from_database_row(row: dict[str, Any]) -> "User":
     """Create a ``User`` from a database row mapping."""
     return User(
-      email=row["email"],
+      id=row["id"],
       name=row["name"],
       active=bool(row["active"]),
     )
@@ -33,7 +33,7 @@ class User:
   def csv_header() -> tuple[str, str, str]:
     """Return the CSV header used for user export."""
     return (
-      "email",
+      "id",
       "name",
       "active",
     )
@@ -41,13 +41,13 @@ class User:
   @staticmethod
   def from_csv_row(row: list[str]) -> "User":
     """Create a ``User`` from a CSV row."""
-    email, name, active = row
-    return User(email=email, name=name, active=bool(int(active)))
+    user_id, name, active = row
+    return User(id=user_id, name=name, active=bool(int(active)))
 
   def to_csv_row(self) -> tuple[str, str, int]:
     """Return values matching the ``csv_header`` CSV export order."""
     return (
-      self.email,
+      self.id,
       self.name,
       int(self.active),
     )
@@ -55,7 +55,7 @@ class User:
   def to_dict(self) -> dict[str, Any]:
     """Return a JSON-serializable representation of the user."""
     return {
-      "email": self.email,
+      "id": self.id,
       "name": self.name,
       "active": self.active,
     }

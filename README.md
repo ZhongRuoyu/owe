@@ -11,7 +11,7 @@ outstanding balances, and provides a one-click Settle button for each.
 
 Core concepts:
 
-- Users - participants identified by email address.
+- Users - participants identified by string ID.
 - Records - individual transactions of type `DEBT` (someone owes money) or
   `PAYMENT` (money has been physically transferred).
   Records can be cancelled (invalidated) if entered by mistake.
@@ -69,22 +69,22 @@ Use it as follows:
 
 - `owe [--database <path>] user list [--active] [--format <format>]`:
   List all users, or only active users if `--active` is specified.
-- `owe [--database <path>] user add <email> <name>`:
-  Add a user with the given email and name.
-- `owe [--database <path>] user <activate|deactivate> <email>`:
-  Activate or deactivate the user with the given email.
+- `owe [--database <path>] user add <id> <name>`:
+  Add a user with the given ID and name.
+- `owe [--database <path>] user <activate|deactivate> <id>`:
+  Activate or deactivate the user with the given ID.
 - `owe [--database <path>] record list [--active] [--format <format>]`:
   List all records, or only active records if `--active` is specified.
 - `owe [--database <path>] record add [options...] [--format <format>]`:
   Add a record with the specified options and list the created records.
   Options:
   - `--type <DEBT|PAYMENT>`: Type of the record (required).
-  - `--lender <email>`: Email of the lender (required).
-  - `--borrower <email>`: Email of the borrower (required).
+  - `--lender <id>`: ID of the lender (required).
+  - `--borrower <id>`: ID of the borrower (required).
     Pass multiple `--borrower` for multiple borrowers.
   - `--amount <amount>`: Total amount (will be split evenly among borrowers)
     (required).
-  - `--created-by <email>`: Email of the user creating the record (required).
+  - `--created-by <id>`: ID of the user creating the record (required).
   - `--remarks <remarks>`: Optional remarks for the record.
 - `owe [--database <path>] record <activate|cancel> [--id <id> ...]`:
   Update the status of records with the given IDs to active or inactive.
@@ -146,8 +146,8 @@ The application can be configured with the following environment variables:
   Default: `owe.db`.
 - `OWE_CURRENCY`: ISO 4217 currency code displayed in the UI.
   Default: `USD`.
-- `OWE_REQUEST_EMAIL_HEADER`: HTTP header to trust for the authenticated user's
-  email, to be used as the creator of records.
+- `OWE_REQUEST_ID_HEADER`: HTTP header to trust for the authenticated user's ID,
+  to be used as the creator of records.
   When run behind Cloudflare Access, this can be set to
   `cf-access-authenticated-user-email` so that the application can identify the
   user by their email address.
@@ -174,8 +174,8 @@ The server exposes the following API endpoints:
 - `POST /api/records`: Create a new record.
   Request body should be JSON with the following fields:
   - `type`: "DEBT" or "PAYMENT"
-  - `lender`: email of the lender
-  - `borrowers`: list of emails of the borrowers
+  - `lender`: ID of the lender
+  - `borrowers`: list of IDs of the borrowers
   - `amount`: total amount (will be split evenly among borrowers)
   - `remarks`: optional remarks for the record
 - `PATCH /api/records/status`: Update the status of records.
@@ -187,7 +187,7 @@ The server exposes the following API endpoints:
   Get the minimum set of settlement transactions.
 
 For API endpoints that create or modify records, the creator of the record is
-determined from the `OWE_REQUEST_EMAIL_HEADER` header if set, or from the remote
+determined from the `OWE_REQUEST_ID_HEADER` header if set, or from the remote
 IP address otherwise.
 
 ### Running the web server with Docker

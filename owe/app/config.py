@@ -10,7 +10,7 @@ class Config:
   log_level: str
   database_path: Path
   currency: str
-  request_email_header: str | None
+  request_id_header: str | None
   trust_proxy: bool
   telegram_bot_token: str | None
   telegram_chat_id: str | None
@@ -24,7 +24,7 @@ def load_env_config() -> Config:
     log_level=os.getenv("OWE_LOG_LEVEL", "INFO").upper(),
     database_path=Path(os.getenv("OWE_DATABASE", "owe.db")),
     currency=os.getenv("OWE_CURRENCY", "USD"),
-    request_email_header=os.getenv("OWE_REQUEST_EMAIL_HEADER"),
+    request_id_header=os.getenv("OWE_REQUEST_ID_HEADER"),
     trust_proxy=bool(os.getenv("OWE_TRUST_PROXY")),
     telegram_bot_token=os.getenv("OWE_TELEGRAM_BOT_TOKEN"),
     telegram_chat_id=os.getenv("OWE_TELEGRAM_CHAT_ID"),
