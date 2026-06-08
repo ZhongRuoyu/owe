@@ -1,20 +1,18 @@
 from logging import Logger
 
-import requests
+from telegram import Bot
+from telegram.error import TelegramError
 
 from owe import Record, User
-
-TELEGRAM_DEFAULT_SEND_TIMEOUT = 15
 
 
 class TelegramAnnouncer:
   """Send Owe notifications to a Telegram chat."""
 
-  _bot_token: str
+  _bot: Bot
   _chat_id: str
   _currency: str
   _logger: Logger | None
-  _send_timeout: int
 
   def __init__(
     self,
@@ -23,20 +21,22 @@ class TelegramAnnouncer:
     chat_id: str,
     currency: str,
     logger: Logger | None = None,
-    send_timeout: int = TELEGRAM_DEFAULT_SEND_TIMEOUT,
   ) -> None:
     """Initialize the announcer with required Telegram settings."""
-    self._bot_token = bot_token
+    self._bot = Bot(token=bot_token)
     self._chat_id = chat_id
     self._currency = currency
     self._logger = logger
-    self._send_timeout = send_timeout
 
-  def announce_records(self, records: list[Record], users: list[User]) -> None:
+  async def announce_records(
+    self,
+    records: list[Record],
+    users: list[User],
+  ) -> None:
     """Build and send a new-record announcement to Telegram."""
-    self._post_message(self._format_records(records, users))
+    await self._post_message(self._format_records(records, users))
 
-  def announce_record_status_change(
+  async def announce_record_status_change(
     self,
     records: list[Record],
     users: list[User],
@@ -45,7 +45,7 @@ class TelegramAnnouncer:
     active: bool,
   ) -> None:
     """Build and send a record-status announcement to Telegram."""
-    self._post_message(
+    await self._post_message(
       self._format_record_status_change(
         records,
         users,
@@ -98,16 +98,11 @@ class TelegramAnnouncer:
       message += f"- {self._record_message(record, users_by_email)}\n"
     return message
 
-  def _post_message(self, message: str) -> None:
+  async def _post_message(self, message: str) -> None:
     """Send a message to a Telegram chat and log failures."""
     try:
-      response = requests.post(
-        f"https://api.telegram.org/bot{self._bot_token}/sendMessage",
-        json={"chat_id": self._chat_id, "text": message},
-        timeout=self._send_timeout,
-      )
-      response.raise_for_status()
-    except requests.RequestException:
+      await self._bot.send_message(chat_id=self._chat_id, text=message)
+    except TelegramError:
       if self._logger:
         self._logger.exception("Telegram notification failed")
 

@@ -115,11 +115,6 @@ def init(app: FastAPI, config: Config) -> None:
   """Initialize logging, schema, and API-level services."""
   setattr(app.state, CONFIG_STATE_KEY, config)
 
-  logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    level=getattr(logging, config.log_level, logging.INFO),
-  )
-
   database = SqliteDatabase(config.database_path, create=True)
   database.init()
   owe_service = Owe(database, logger=logger)
