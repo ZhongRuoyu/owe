@@ -2,6 +2,8 @@ import datetime as dt
 import unittest
 from unittest.mock import Mock
 
+import pytest
+
 from owe import (
   AggregatedRecord,
   Owe,
@@ -9,6 +11,8 @@ from owe import (
   RecordType,
   SummaryTransaction,
   User,
+  amount_to_cents,
+  cents_to_amount,
 )
 
 
@@ -249,6 +253,24 @@ class OweTests(unittest.TestCase):
 
     assert summary == []
     self.database.get_net_balances.assert_called_once_with()
+
+  def test_amount_to_cents_converts_decimal_string_exactly(self) -> None:
+    """Ensure decimal amount parsing does not use binary floats."""
+    small_amount_cents = 29
+    large_amount_cents = 1230
+
+    assert amount_to_cents("0.29") == small_amount_cents
+    assert amount_to_cents("12.30") == large_amount_cents
+
+  def test_amount_to_cents_rejects_fractional_cents(self) -> None:
+    """Ensure decimal amount parsing rejects sub-cent amounts."""
+    with pytest.raises(ValueError, match="no fractional cents"):
+      amount_to_cents("0.291")
+
+  def test_cents_to_amount_converts_cents_to_decimal_string(self) -> None:
+    """Ensure cents to amount conversion produces correct decimal strings."""
+    assert cents_to_amount(29) == "0.29"
+    assert cents_to_amount(1230) == "12.30"
 
 
 if __name__ == "__main__":

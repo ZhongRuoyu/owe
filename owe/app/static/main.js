@@ -249,8 +249,8 @@ async function addRecord() {
     return;
   }
 
-  const amount = +document.getElementById("amount").value * 100;
-  if (isNaN(amount)) {
+  const amount = Math.round(+document.getElementById("amount").value * 100);
+  if (isNaN(amount) || !isFinite(amount) || amount <= 0) {
     showAlert("Please enter a valid amount.", "warning");
     return;
   }

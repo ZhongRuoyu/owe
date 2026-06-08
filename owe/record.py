@@ -1,7 +1,10 @@
 import datetime as dt
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
 from typing import Any
+
+from .money import CENTS_PER_UNIT, amount_to_cents
 
 
 class RecordType(str, Enum):
@@ -90,7 +93,7 @@ class Record:
       type=RecordType(record_type),
       lender=lender,
       borrower=borrower,
-      amount=int(float(amount) * 100),
+      amount=amount_to_cents(amount),
       created_by=created_by,
       created_at=dt.datetime.fromisoformat(created_at),
       remarks=remarks,
@@ -104,7 +107,7 @@ class Record:
       self.type.value,
       self.lender,
       self.borrower,
-      f"{self.amount / 100:.2f}",
+      f"{Decimal(self.amount) / CENTS_PER_UNIT:.2f}",
       self.created_by,
       self.created_at.isoformat(timespec="milliseconds"),
       self.remarks or "",
@@ -159,6 +162,6 @@ class AggregatedRecord:
     ]
 
   @staticmethod
-  def _ceildiv(a: float, b: int) -> int:
+  def _ceildiv(a: int, b: int) -> int:
     """Divide ``a`` by ``b`` and round up."""
     return int(-(a // -b))

@@ -13,6 +13,7 @@ from owe import (
   SqliteDatabase,
   SummaryTransaction,
   User,
+  amount_to_cents,
 )
 
 
@@ -181,7 +182,7 @@ def add_records(  # noqa: PLR0913
   record_type: str,
   lender: str,
   borrowers: list[str],
-  amount: float,
+  amount: int,
   created_by: str,
   remarks: str | None = None,
   output_format: str,
@@ -191,7 +192,7 @@ def add_records(  # noqa: PLR0913
     type=RecordType(record_type),
     lender=lender,
     borrowers=borrowers,
-    amount=int(amount * 100),
+    amount=amount,
     created_by=created_by,
     remarks=remarks,
   )
@@ -355,7 +356,7 @@ def build_parser() -> argparse.ArgumentParser:
   record_add_parser.add_argument(
     "--amount",
     help="total amount",
-    type=float,
+    type=amount_to_cents,
     required=True,
   )
   record_add_parser.add_argument(

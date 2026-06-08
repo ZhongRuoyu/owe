@@ -9,6 +9,7 @@ from .database import (
   UserAlreadyExistsError,
   UserNotFoundError,
 )
+from .money import amount_to_cents, cents_to_amount
 from .owe import Owe
 from .record import AggregatedRecord, Record, RecordType
 from .summary_transaction import SummaryTransaction
@@ -30,4 +31,6 @@ __all__ = [
   "User",
   "UserAlreadyExistsError",
   "UserNotFoundError",
+  "amount_to_cents",
+  "cents_to_amount",
 ]
