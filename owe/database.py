@@ -41,6 +41,10 @@ class UserNotFoundError(DatabaseIntegrityError):
   """An exception raised when a user is not found in the database."""
 
 
+class RecordNotFoundError(DatabaseIntegrityError):
+  """An exception raised when a record is not found in the database."""
+
+
 class Database(ABC):
   """Abstract database backend for managing users and records."""
 
@@ -264,6 +268,9 @@ class SqliteDatabase(Database):
       except sqlite3.Error as error:
         msg = f"Failed to update records: {error}"
         raise DatabaseError(msg) from error
+      if cur.rowcount != len(ids):
+        msg = "One or more records were not found"
+        raise RecordNotFoundError(msg)
       return cur.rowcount
 
   def get_net_balances(self) -> dict[str, int]:

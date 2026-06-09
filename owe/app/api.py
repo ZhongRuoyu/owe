@@ -10,7 +10,14 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 
-from owe import AggregatedRecord, DatabaseError, Owe, RecordType, SqliteDatabase
+from owe import (
+  AggregatedRecord,
+  DatabaseError,
+  Owe,
+  RecordNotFoundError,
+  RecordType,
+  SqliteDatabase,
+)
 
 from .config import Config
 from .schema import (
@@ -263,6 +270,8 @@ async def set_records_active(
   owe_service = _app_owe(request)
   try:
     owe_service.set_records_active(body.ids, active=body.active)
+  except RecordNotFoundError as error:
+    raise APIError(str(error), status.HTTP_404_NOT_FOUND) from None
   except DatabaseError:
     logger.exception("Database error in set_records_active")
     raise APIDatabaseError from None

@@ -7,6 +7,7 @@ from owe import (
   DatabaseConnectionError,
   DatabaseIntegrityError,
   Record,
+  RecordNotFoundError,
   RecordType,
   SqliteDatabase,
   User,
@@ -223,23 +224,23 @@ def test_set_records_active_updates_batch(database_path: Path) -> None:
   ]
 
 
-def test_set_records_active_ignores_missing_ids_for_current_behavior(
+def test_set_records_active_rejects_missing_ids_and_rolls_back(
   database_path: Path,
 ) -> None:
-  """Document current row-count behavior for missing record IDs."""
+  """Ensure missing record IDs reject the whole status update."""
   database = create_database(database_path)
   add_users(database)
   first_record_id = 1
   missing_record_id = 3
-  expected_count = 1
   database.add_records([make_record()])
 
-  updated_count = database.set_records_active(
-    [first_record_id, missing_record_id],
-    active=False,
-  )
-  assert updated_count == expected_count
-  assert database.get_records()[0].active is False
+  with pytest.raises(RecordNotFoundError):
+    database.set_records_active(
+      [first_record_id, missing_record_id],
+      active=False,
+    )
+
+  assert database.get_records()[0].active is True
 
 
 def test_get_net_balances_uses_active_records_only(database_path: Path) -> None:
