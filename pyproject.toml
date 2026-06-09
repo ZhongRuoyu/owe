@@ -45,9 +45,16 @@ owe = "owe.cli:main"
 
 [dependency-groups]
 dev = [
-  "pytest>=9.0.3",
+  { include-group = "lint" },
+  { include-group = "test" },
+  { include-group = "fastapi-dev" },
+]
+lint = [
   "ruff>=0.15.14",
   "ty>=0.0.39",
+]
+test = [
+  "pytest>=9.0.3",
 ]
 fastapi-dev = [
   "fastapi-cli>=0.0.24",

@@ -254,12 +254,20 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "fastapi-cli" },
     { name = "pytest" },
     { name = "ruff" },
     { name = "ty" },
 ]
 fastapi-dev = [
     { name = "fastapi-cli" },
+]
+lint = [
+    { name = "ruff" },
+    { name = "ty" },
+]
+test = [
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -272,11 +280,17 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "fastapi-cli", specifier = ">=0.0.24" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "ruff", specifier = ">=0.15.14" },
     { name = "ty", specifier = ">=0.0.39" },
 ]
 fastapi-dev = [{ name = "fastapi-cli", specifier = ">=0.0.24" }]
+lint = [
+    { name = "ruff", specifier = ">=0.15.14" },
+    { name = "ty", specifier = ">=0.0.39" },
+]
+test = [{ name = "pytest", specifier = ">=9.0.3" }]
 
 [[package]]
 name = "packaging"
