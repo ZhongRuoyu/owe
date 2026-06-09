@@ -59,7 +59,3 @@ build-backend = "uv_build"
 
 [tool.uv]
 exclude-newer = "P7D"
-
-[tool.uv.build-backend]
-module-name = "owe"
-module-root = ""
