@@ -1,4 +1,6 @@
-FROM python:3.14.5-alpine AS builder
+ARG PYTHON_VERSION=3.14
+
+FROM python:"$PYTHON_VERSION-alpine" AS builder
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1
@@ -27,7 +29,7 @@ RUN \
   uv pip install uvicorn
 RUN
 
-FROM python:3.14.5-alpine
+FROM python:"$PYTHON_VERSION-alpine"
 
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
