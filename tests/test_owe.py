@@ -1,3 +1,6 @@
+# Copyright (c) 2024 - 2026 Ruoyu Zhong
+# SPDX-License-Identifier: MIT
+
 import datetime as dt
 import unittest
 from unittest.mock import Mock

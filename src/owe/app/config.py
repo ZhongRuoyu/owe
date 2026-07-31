@@ -1,3 +1,6 @@
+# Copyright (c) 2024 - 2026 Ruoyu Zhong
+# SPDX-License-Identifier: MIT
+
 import os
 from dataclasses import dataclass
 from pathlib import Path

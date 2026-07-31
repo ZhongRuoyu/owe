@@ -1,3 +1,6 @@
+# Copyright (c) 2024 - 2026 Ruoyu Zhong
+# SPDX-License-Identifier: MIT
+
 import sqlite3
 from abc import ABC, abstractmethod
 from contextlib import closing
