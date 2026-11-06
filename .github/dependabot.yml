@@ -37,3 +37,8 @@ updates:
       uv:
         patterns:
           - "*"
+        # uv-build has no locked version. Grouping its requirement update with
+        # lockfile-only updates can make Dependabot discard the entire group.
+        # https://github.com/dependabot/dependabot-core/issues/16431#issuecomment-6688702514
+        exclude-patterns:
+          - "uv-build"
