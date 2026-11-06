@@ -47,7 +47,7 @@ rather than very large accounting ledgers.
 
 ## Requirements
 
-Owe runs on Python 3.10 or later.
+Owe runs on Python 3.11 or later.
 It uses SQLite for data storage, so no additional database setup is required.
 
 For development, [uv](https://github.com/astral-sh/uv) is recommended but
