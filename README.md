@@ -121,8 +121,9 @@ Use it as follows:
 - `owe [--database <path>] record summary [--format <format>]`:
   Show the summary of settlements.
 
-The `--database` option allows you to choose the SQLite database file;
-if not specified, it defaults to `owe.db` in the current directory.
+The `--database` option allows you to choose the SQLite database file.
+If not specified, the `OWE_DATABASE` environment variable is used;
+if unset, it defaults to `owe.db` in the current directory.
 `--format` can be set to `table` (default) for more human-readable output,
 or `json` or `csv` for more machine-friendly output.
 

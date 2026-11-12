@@ -110,6 +110,37 @@ def test_user_command_requires_initialized_database(
   assert "Failed to connect to the database" in stderr
 
 
+@pytest.mark.parametrize(
+  ("env_database", "cli_database", "expected_database"),
+  [
+    (None, None, "owe.db"),
+    ("env.db", None, "env.db"),
+    ("env.db", "cli.db", "cli.db"),
+  ],
+)
+def test_database_init_respects_database_precedence(
+  monkeypatch: pytest.MonkeyPatch,
+  database_path: Path,
+  env_database: str | None,
+  cli_database: str | None,
+  expected_database: str,
+) -> None:
+  """Ensure the database option overrides the environment and default path."""
+  monkeypatch.chdir(database_path.parent)
+  if env_database is None:
+    monkeypatch.delenv("OWE_DATABASE", raising=False)
+  else:
+    monkeypatch.setenv("OWE_DATABASE", env_database)
+
+  argv = ["owe"]
+  if cli_database is not None:
+    argv.extend(["--database", cli_database])
+  monkeypatch.setattr(sys, "argv", [*argv, "database", "init"])
+
+  assert cli.main() == 0
+  assert Path(expected_database).is_file()
+
+
 def test_database_init_creates_empty_database(
   monkeypatch: pytest.MonkeyPatch,
   capsys: pytest.CaptureFixture[str],

@@ -4,6 +4,7 @@
 import argparse
 import csv
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -243,8 +244,11 @@ def build_parser() -> argparse.ArgumentParser:
   parser.add_argument(
     "--database",
     type=Path,
-    default=Path("owe.db"),
-    help="path to the SQLite database file (default: owe.db)",
+    default=Path(os.getenv("OWE_DATABASE", "owe.db")),
+    help=(
+      "path to the SQLite database file "
+      "(default: OWE_DATABASE environment variable, or owe.db if unset)"
+    ),
   )
   command = parser.add_subparsers(
     dest="command",
