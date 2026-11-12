@@ -1,6 +1,6 @@
 [project]
 name = "owe"
-version = "0.2.0"
+version = "0.2.1"
 authors = [{ name = "Ruoyu Zhong", email = "zhongruoyu@outlook.com" }]
 description = "Bill splitter and tracker."
 readme = "README.md"
